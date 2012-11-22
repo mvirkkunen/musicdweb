@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>musicd</title>
+        <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.8.22/themes/ui-lightness/jquery-ui.css" />
+        <link rel="stylesheet" type="text/css" href="musicd.css" />
+        <link id="favicon" rel="shortcut icon" type="image/png" href="img/icon-stop.png" />
+        <script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+        <script src="jquery-throttle.min.js"></script>
+        <script src="http://code.jquery.com/ui/1.8.21/jquery-ui.min.js"></script>
+        <script src="musicd.js"></script>
+    </head>
+    <body>
+        <div id="server-status">
+            <p>Connected as <strong>lumpio</strong></p>
+        </div>
+
+        <div id="player">
+            <div class="buttons">
+                <button class="toggle-play">▶</button>
+                <button class="stop">■</button>
+                <button class="prev" disabled>◀◀</button>
+                <button class="next" disabled>▶▶</button>
+                
+                <span class="current-time">--:-- / --:--</span>
+            </div>
+
+            <div class="seek"></div>
+            <div class="volume"></div>
+        </div>
+
+        <div id="track-info">
+            <h2 class="track-name"><span>musicdweb 0.002 closed alpha / premium enter price edition</span></h2>
+            <h2 class="album" style="display: none;">from <span></span></h2>
+            <h2 class="artist" style="display: none;">by <span></span></h2>
+            <img src="http://placekitten.com/g/200/200" alt="Album art" class="album-art" />
+            <!--<p>Lyrics...</p>-->
+            
+            <div id="debug"></div>
+        </div>
+        
+        <div id="lists">
+            <div id="search">
+                <h2>Songs on the server</h2>
+                <div class="search">
+                    <input type="text" />
+                </div>
+                <div class="track-list">
+                    <table class="heading-table">
+                        <thead>
+                            <tr>
+                                <th class="track">#</th>
+                                <th class="title">Title</th>
+                                <th class="artist">Artist</th>
+                                <th class="album">Album</th>
+                                <th class="duration">Length</th>
+                            </tr>
+                        </thead>
+                    </table>
+                    <div class="tracks virtual-list">
+                        <div class="padder"></div>
+                        <table>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="playlist" class="song-list">
+                <h2>Current playlist</h2>
+            </div>
+        </div>
+    </body>
+</html>

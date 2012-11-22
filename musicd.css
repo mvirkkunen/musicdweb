@@ -1,0 +1,207 @@
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    line-height: inherit;
+    vertical-align: baseline;
+}
+
+input, textarea {
+    font-size: 100%;
+    font: inherit;
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+
+strong {
+    font-weight: bold;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    color: #333;
+    font-size: 12px;
+    padding: 10px;
+}
+
+#server-status {
+    float: right;
+    margin-right: 40px;
+}
+
+#player {
+    display: block;
+    height: 60px;
+    position: relative;
+}
+
+#player .buttons {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#player .buttons button {
+    display: inline-block;
+    width: 40px;
+    height: 26px;
+    padding: 0;
+    line-height: 24px;
+    text-align: center;
+    font-size: 15px;
+    margin-right: 10px;
+}
+
+#player .buttons .pause {
+    font-size: 12px;
+}
+
+#player .buttons .prev, #player .buttons .next {
+    font-size: 12px;
+    letter-spacing: -4px;
+}
+
+#player .buttons .current-time {
+    font-family: monospace;
+}
+
+#player .seek {
+    position: absolute;
+    left: 5px;
+    right: 40px;
+    top: 40px;
+}
+
+#player .volume {
+    position: absolute;
+    right: 0;
+    top: 5px;
+    height: 45px;
+}
+
+#track-info {
+    width: 300px;
+    float: left;
+}
+
+#track-info h2 {
+    margin-bottom: 5px;
+}
+
+#track-info h2 span {
+    font-weight: bold;
+}
+
+#track-info .album-art {
+    display: block;
+    box-sizing: border-box;
+    width: 300px;
+    border: 1px solid #888;
+}
+
+#lists {
+    margin-left: 320px;
+    overflow: hidden;
+}
+
+#search {
+/*    width: 48%;
+    float: left;*/
+}
+
+#search .search {
+    margin: 4px 0;
+}
+
+#search .search input {
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid #888;
+}
+
+#playlist {
+    width: 48%;
+    float: right;
+    display: none;
+}
+
+.track-list table {
+    width: 100%;
+    border-spacing: 0;
+    table-layout: fixed;
+    background: #FFF;
+}
+
+.track-list .heading-table {
+    box-sizing: border-box;
+    padding-right: 18px;
+}
+
+.track-list .track { width: 20px; }
+.track-list .title { width: 30%; }
+.track-list .artist { width: 20%; }
+.track-list .album { width: 20%; }
+.track-list .duration { width: 50px; text-align: right; }
+
+/*.track-lift thead {
+    display: block;
+}
+
+.track-list tbody {
+    display: block;
+    overflow-y: scroll;
+    height: 100px;
+}*/
+
+.track-list th, .track-list td {
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 0 4px;
+    height: 16px;
+    vertical-align: middle;
+    text-align: left;
+    cursor: default;
+    
+    /* juuh elikkäs */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.track-list td {
+    border-top: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    border-right: 1px solid #DDD;
+}
+
+.track-list th {
+    border-top: 2px solid #CCC;
+    border-bottom: 2px solid #CCC;
+    border-right: 1px solid #DDD;
+    background: #EEE;
+}
+
+.track-list tr:nth-child(even) td {
+    background: #F8F8F8;
+}
+
+.track-list tr.selected td {
+    background: #EEF ;
+    border-top: 2px solid #DDF;
+    border-bottom: 2px solid #DDF;
+}
+
+.virtual-list {
+    height: 500px;
+    position: relative;
+    overflow: scroll;
+    /*background: -webkit-radial-gradient(50% 50%, closest-side, #CCC, #FFF);*/
+}
