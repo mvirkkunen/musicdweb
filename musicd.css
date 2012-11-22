@@ -26,6 +26,7 @@ body {
     color: #333;
     font-size: 12px;
     padding: 10px;
+    overflow: hidden;
 }
 
 #server-status {
@@ -129,35 +130,7 @@ body {
     display: none;
 }
 
-.track-list table {
-    width: 100%;
-    border-spacing: 0;
-    table-layout: fixed;
-    background: #FFF;
-}
-
-.track-list .heading-table {
-    box-sizing: border-box;
-    padding-right: 18px;
-}
-
-.track-list .track { width: 20px; }
-.track-list .title { width: 30%; }
-.track-list .artist { width: 20%; }
-.track-list .album { width: 20%; }
-.track-list .duration { width: 50px; text-align: right; }
-
-/*.track-lift thead {
-    display: block;
-}
-
-.track-list tbody {
-    display: block;
-    overflow-y: scroll;
-    height: 100px;
-}*/
-
-.track-list th, .track-list td {
+.virtual-list th, .virtual-list td {
     text-align: left;
     white-space: nowrap;
     overflow: hidden;
@@ -176,32 +149,55 @@ body {
     user-select: none;
 }
 
-.track-list td {
+.virtual-list td {
     border-top: 2px solid transparent;
     border-bottom: 2px solid transparent;
     border-right: 1px solid #DDD;
 }
 
-.track-list th {
+.virtual-list th {
     border-top: 2px solid #CCC;
     border-bottom: 2px solid #CCC;
     border-right: 1px solid #DDD;
     background: #EEE;
 }
 
-.track-list tr:nth-child(even) td {
+.virtual-list tr:nth-child(even) td {
     background: #F8F8F8;
 }
 
-.track-list tr.selected td {
+.virtual-list tr.selected td {
     background: #EEF ;
     border-top: 2px solid #DDF;
     border-bottom: 2px solid #DDF;
 }
 
-.virtual-list {
+.virtual-list  table {
+    width: 100%;
+    border-spacing: 0;
+    table-layout: fixed;
+    background: #FFF;
+}
+
+.virtual-list .heading-table {
+    box-sizing: border-box;
+    padding-right: 18px;
+}
+
+.virtual-list .rows {
     height: 500px;
     position: relative;
     overflow: scroll;
-    /*background: -webkit-radial-gradient(50% 50%, closest-side, #CCC, #FFF);*/
 }
+
+.virtual-list .rows table {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.track-list .track { width: 20px; }
+.track-list .title { width: 30%; }
+.track-list .artist { width: 20%; }
+.track-list .album { width: 20%; }
+.track-list .duration { width: 50px; text-align: right; }
