@@ -17,7 +17,8 @@ musicd.Player = function(el, trackInfo) {
         $("#debug").text(d);
     }, 1000);
 
-    this.onaudioend = null;
+    this.onAudioEnd = new musicd.Event();
+    this.onStateChange = new musicd.Event();
     
     this.currentStart = 0;
     this.track = null;
@@ -74,8 +75,8 @@ musicd.Player.prototype = {
     },
 
     _audioEnded: function() {
-        if (this.onaudioend)
-            this.onaudioend();
+        this.stop();
+        this.onAudioEnd.fire();
     },
 
     _seekSliderStart: function() {
@@ -158,6 +159,8 @@ musicd.Player.prototype = {
             .text(this.state == musicd.Player.PLAYING ? "▮▮" : "▶");
 
         this._updateSeekable();
+        
+        this.onStateChange.fire(state);
     },
     
     setTrack: function(track) {

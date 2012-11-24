@@ -2,12 +2,13 @@ musicd.Search = function(el, player) {
     this.el = $(el);
 
     this.player = player;
-    this.player.onaudioend = this._nextSong.bind(this);
+    this.player.onAudioEnd.addListener(this._nextSong.bind(this));
     
     this._search = this.el.find(".search input");
     this._search.focus();
     
-    this._search.onmethod("keyup", null, this, "_searchKeyUp");
+    //this._search.onmethod("keyup", null, this, "_searchKeyUp");
+    this._search.on("keyup", $.throttle(500, this._searchKeyUp.bind(this)));
     
     this._vlist = new musicd.VirtualList(this.el.find(".track-list"),
         this._itemProvider.bind(this),
@@ -18,7 +19,8 @@ musicd.Search = function(el, player) {
             {name: "album", title: "Album"},
             {name: "duration", title: "Length", formatter: musicd.formatTime},
         ]);
-    this._vlist.onitemactivate = this._onItemActivate.bind(this);
+        
+    this._vlist.onItemActivate.addListener(this._onItemActivate.bind(this));
 };
 
 musicd.Search.prototype = {
@@ -39,6 +41,8 @@ musicd.Search.prototype = {
     _isValidSearch: function(text) {
         if (!text)
             return false;
+
+        return true;
         
         return !!text.match(/...|[\u3040-\u30FF]{2}|[\u3300-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F]/);
     },
@@ -49,8 +53,7 @@ musicd.Search.prototype = {
     },
     
     _searchKeyUp: function() {
-        this._vlist.scrollTo(0);
-        this._vlist.update();
+        this._vlist.refresh();
     },
     
     _itemProvider: function(offset, limit, callback) {
@@ -61,15 +64,15 @@ musicd.Search.prototype = {
         if (!this._isValidSearch(text)) {
             callback(0, []);
         } else {
-            musicd.api.call("search", {query: text, sort: "album,track", offset: offset, limit: limit}, function(res) {
-                callback(1000, res.tracks.map(function(track) {
-                    return {
-                        item: track,
-                        id: track.id,
-                        //selected: (this.player.track && this.player.track.id == track.id)
-                    }
-                }));
-            }.bind(this));
+            musicd.api.call(
+                "Search.tracks",
+                //null,
+                "tracks",
+                { search: text, sort: "album,track", offset: offset, limit: limit, total: 1 },
+                function(res) {
+                    callback(res.total || 0, res.tracks);
+                }.bind(this)
+            );
         }
     },
     

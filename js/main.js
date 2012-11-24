@@ -35,6 +35,30 @@ musicd.formatTime = function(time, lengthHint) {
     return s;
 }
 
+musicd.Event = function Event() {
+    
+};
+
+musicd.Event.prototype = {
+    addListener: function(func) {
+        if (!this._listeners)
+            this._listeners = [];    
+            
+        this._listeners.push(func);
+    },
+    
+    fire: function() {
+        if (!this._listeners)
+            return;
+            
+        var args = arguments;
+        
+        this._listeners.forEach(function(func) {
+            func.apply(this, args);
+        }, this);
+    }
+};
+
 musicd.Session = function Session() {
     
 }
@@ -59,12 +83,23 @@ musicd.APIClient = function(url, authCallback) {
 }
 
 musicd.APIClient.prototype = {
-    call: function(method, args, success) {
+    call: function(name, method, args, success) {
+        if (name) {
+            if (this.request && this.requestName && this.requestName == name)
+                this.request.abort();
+
+            this.queue = this.queue.filter(function(i) {
+                return !(i.name && i.name === name);
+            });
+        }
+
         this.queue.push({
+            name: name,
             method: method,
             args: args,
             success: success
         });
+
         this._executeNext();
     },
     
@@ -85,7 +120,7 @@ musicd.APIClient.prototype = {
         if (this.request || !this.queue.length)
             return;
         
-        var r = this.queue[this.queue.length - 1];
+        var r = this.queue[0];
 
         this.request = $.request({
             type: "GET",
@@ -95,13 +130,17 @@ musicd.APIClient.prototype = {
             success: this._requestSuccess.bind(this),
             error: this._requestError.bind(this)
         });
+        this.requestName = r.name;
     },
 
     _requestSuccess: function(res) {
         var r = this.queue.shift();
 
         r.success(res);
+
         this.request = null;
+        this.requestName = null;
+
         this._executeNext();
     },
 
@@ -109,10 +148,14 @@ musicd.APIClient.prototype = {
         if (xhr.status == 401) {
             this.authCallback(this);
         } else {
-            alert("API error");
-            this.request = null;
+            if (xhr.getAllResponseHeaders())
+                alert("API error");
 
             this.queue.shift();
+    
+            this.request = null;
+            this.requestName = null;
+
             this._executeNext();
         }
     },
@@ -146,7 +189,19 @@ $(function() {
     musicd.api = new musicd.APIClient("http://lumpio.dy.fi:1337/");
     musicd.session = new musicd.Session();    
     
-    var player = new musicd.Player("#player", "#track-info");
+    musicd.player = new musicd.Player("#player", "#track-info");
     
-    var search = new musicd.Search("#search", player);
+    var search = new musicd.Search("#search", musicd.player);
+    
+    musicd.player.onStateChange.addListener(function(state) {
+        window.postMessage({
+            type: "STATE_CHANGE",
+            text: state == musicd.Player.PLAYING ? "play" : "pause"
+        }, "*");
+    });
+    
+    window.addEventListener("message", function(e) {
+        if (e.data.type == "TOGGLE_PLAY")
+            musicd.player.togglePlay();
+    });
 });
