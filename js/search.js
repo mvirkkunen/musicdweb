@@ -1,14 +1,27 @@
+"use strict";
+
 musicd.Search = function(el, player) {
     this.el = $(el);
 
     this.player = player;
-    this.player.onAudioEnd.addListener(this._nextSong.bind(this));
+    this.player.onAudioEnd.addListener(function() {
+        this._burkhaNavigate("next");
+    }.bind(this));
+    
+    $(".buttons .prev").on("click", function() {
+        this._burkhaNavigate("prev");
+    }.bind(this));
+    $(".buttons .next").on("click", function() {
+        this._burkhaNavigate("next");
+    }.bind(this));
     
     this._search = this.el.find(".search input");
-    this._search.focus();
+    this._search.val("").focus();
+    this._lastSearch = "";
     
-    //this._search.onmethod("keyup", null, this, "_searchKeyUp");
-    this._search.on("keyup", $.throttle(500, this._searchKeyUp.bind(this)));
+    this._totalResults = this.el.find(".total-results");
+    
+    this._search.on("keyup", $.throttle(250, this._searchKeyUp.bind(this)));
     
     this._vlist = new musicd.VirtualList(this.el.find(".track-list"),
         this._itemProvider.bind(this),
@@ -24,10 +37,8 @@ musicd.Search = function(el, player) {
 };
 
 musicd.Search.prototype = {
-    _nextSong: function() {
-        // burqa
-        
-        var tr = $(".virtual-list tr.selected").next();
+    _burkhaNavigate: function(dir) {
+        var tr = $(".virtual-list tr.selected")[dir]();
         if (tr.length) {
             var item = tr.data("item");
             
@@ -39,9 +50,6 @@ musicd.Search.prototype = {
     },
     
     _isValidSearch: function(text) {
-        if (!text)
-            return false;
-
         return true;
         
         return !!text.match(/...|[\u3040-\u30FF]{2}|[\u3300-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F]/);
@@ -53,7 +61,13 @@ musicd.Search.prototype = {
     },
     
     _searchKeyUp: function() {
-        this._vlist.refresh();
+        var text = this._search.val();
+        
+        if (text !== this._lastSearch) {
+            this._lastSearch = text;
+            
+            this._vlist.refresh();
+        }
     },
     
     _itemProvider: function(offset, limit, callback) {
@@ -64,13 +78,21 @@ musicd.Search.prototype = {
         if (!this._isValidSearch(text)) {
             callback(0, []);
         } else {
+            var args = { search: text, sort: "album,track,title", offset: offset, limit: limit };
+
+            if (offset == 0)
+                args.total = 1;
+
             musicd.api.call(
-                "Search.tracks",
-                //null,
+                null,
+                //(offset == 0 ? null : "Search.tracks"), // ensures first search is not aborted
                 "tracks",
-                { search: text, sort: "album,track", offset: offset, limit: limit, total: 1 },
+                args,
                 function(res) {
-                    callback(res.total || 0, res.tracks);
+                    if (offset == 0)
+                        this._totalResults.text(res.total || 0);
+                    
+                    callback((offset == 0 ? (res.total || 0) : null), res.tracks);
                 }.bind(this)
             );
         }

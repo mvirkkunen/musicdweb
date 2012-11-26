@@ -89,8 +89,16 @@ body {
     float: left;
 }
 
+#track-info .titles {
+    overflow: hidden;
+}
+
 #track-info h2 {
     margin-bottom: 5px;
+}
+
+#track-info .track-name {
+    font-size: 15px;
 }
 
 #track-info h2 span {
@@ -98,10 +106,43 @@ body {
 }
 
 #track-info .album-art {
-    display: block;
-    box-sizing: border-box;
     width: 300px;
+    /*height: 300px;*/
+    /*min-height: 100px;*/
+    /*display: table-cell;*/
+    text-align: center;
+    /*vertical-align: middle;*/
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+#track-info .album-art img {
+    display: inline-block;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    max-width: 300px;
+    max-height: 300px;
     border: 1px solid #888;
+    vertical-align: middle;
+}
+
+#track-info .dummy-album-art {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    overflow: hidden;
+    border: 1px solid #888;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 20px;
+    background: #EEE;
+    font-family: serif;
+    font-size: 14px;
+}
+
+#track-info .dummy-album-art h3 {
+    font-size: 18px;
+    margin-bottom: 20px;
 }
 
 #lists {
@@ -119,6 +160,7 @@ body {
 }
 
 #search .search input {
+    -moz-box-sizing: border-box;
     box-sizing: border-box;
     width: 100%;
     border: 1px solid #888;
@@ -128,6 +170,33 @@ body {
     width: 48%;
     float: right;
     display: none;
+}
+
+.virtual-list {
+    position: relative;
+}
+
+.virtual-list .menu-button {
+    position: absolute;
+    display: block;
+    width: 15px;
+    height: 20px;
+    right: 0;
+    top: 0;
+    font-size: 8px;
+    text-decoration: none;
+    color: #000;
+    line-height: 20px;
+    text-align: center;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    border: 1px solid outset;
+    background: #EEE;
+}
+
+.virtual-list .padder {
+    overflow: hidden;
+    position: relative;
 }
 
 .virtual-list th, .virtual-list td {

@@ -23,8 +23,8 @@
             <div class="buttons">
                 <button class="toggle-play">▶</button>
                 <button class="stop">■</button>
-                <button class="prev" disabled>◀◀</button>
-                <button class="next" disabled>▶▶</button>
+                <button class="prev">◀◀</button>
+                <button class="next">▶▶</button>
                 
                 <span class="current-time">--:-- / --:--</span>
             </div>
@@ -34,10 +34,17 @@
         </div>
         
         <div id="track-info">
-            <h2 class="track-name"><span>musicdweb 0.002 closed alpha / premium enter price edition</span></h2>
-            <h2 class="album" style="display: none;">from <span></span></h2>
-            <h2 class="artist" style="display: none;">by <span></span></h2>
-            <img src="http://placekitten.com/g/200/200" alt="Album art" class="album-art" />
+            <div class="titles">
+                <div class="titles-container">
+                    <h2 class="track-name"><span>musicdweb 0.002 closed alpha / premium enter price edition</span></h2>
+                    <h2 class="album" style="display: none;">from <span></span></h2>
+                    <h2 class="artist" style="display: none;">by <span></span></h2>
+                </div>
+            </div>
+            <div class="album-art">
+                <div class="dummy-album-art"><div class="cd"></div></div>
+                <!--<img src="http://placekitten.com/g/200/200" alt="Album art" class="album-art" />-->
+            </div>
             <!--<p>Lyrics...</p>-->
             
             <div id="debug"></div>
@@ -45,7 +52,10 @@
         
         <div id="lists">
             <div id="search">
-                <h2>Songs on the server</h2>
+                <h2>
+                    Songs on the server - 
+                    Total results: <strong class="total-results"></strong>
+                </h2>
                 
                 <div class="search">
                     <input type="text" />

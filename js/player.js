@@ -1,6 +1,9 @@
+"use strict";
+
 musicd.Player = function(el, trackInfo) {
     this.el = $(el);
     this._trackInfo = $(trackInfo);
+    this._albumArt = this._trackInfo.find(".album-art");
     
     this.audio = new Audio();
     window.debugaudio = this.audio;
@@ -55,7 +58,15 @@ musicd.Player = function(el, trackInfo) {
 $.extend(musicd.Player, {
     STOPPED: 0,
     PLAYING: 1,
-    PAUSED: 2
+    PAUSED: 2,
+    
+    createDummyAlbumArt: function(track) {
+        var div = $("<div>").addClass("dummy-album-art").append(
+            $("<h3>").text(track.album || "Untitled album"),
+            $("<p>").text(track.artist || "Unknown artist"));
+        
+        return div;
+    }
 });
 
 musicd.Player.prototype = {
@@ -172,9 +183,11 @@ musicd.Player.prototype = {
         this.currentStart = 0;
         this.audio.src = musicd.api.getTrackURL(track);
         
+        this._trackInfo.find(".titles").pinHeight();
         this._trackInfo.find(".track-name").toggle(!!track.title).find("span").text(track.title);
         this._trackInfo.find(".album").toggle(!!track.album).find("span").text(track.album);
         this._trackInfo.find(".artist").toggle(!!track.artist).find("span").text(track.artist);
+        this._trackInfo.find(".titles").animateNaturalHeight(400);
         
         var names = [track.title, track.album, track.artist, "musicd"], title = "";
         names.forEach(function(n) {
@@ -188,26 +201,63 @@ musicd.Player.prototype = {
         
         document.title = title;
         
-        if (!prevTrack || prevTrack.albumid != track.albumid) {
-            var albumArt = this._trackInfo.find(".album-art");
-                img = new Image(),
-                loadAlbumId = track.albumid,
-                src = musicd.api.getAlbumImageUrl(track, 256);
-                
-            img.onload = function() {
-                if (this.track && this.track.albumid && this.track.albumid == loadAlbumId) {
-                    albumArt.queue(function(next) {
-                       albumArt.attr("src", src).animate({opacity: 1}, 200); 
-                       
-                       next();
-                    });
-                }
-            }.bind(this);
-            albumArt.animate({opacity: 0}, 200);
-            img.src = src;
+        if (!prevTrack || prevTrack.albumid != track.albumid
+            || prevTrack.artistid != track.artistid)
+        {
+            this.loadAlbumInfo(track);
         }
         
         this.play();
+    },
+    
+    loadAlbumInfo: function(track) {
+        var loadAlbumId = track.albumid;
+        
+        function unknown() {
+            if (this.track && this.track.albumid === loadAlbumId) {
+                this._albumArt.queue(function(next) {
+                    this._albumArt.empty();
+                    
+                    var div = musicd.Player.createDummyAlbumArt(track);
+                
+                    div.css("opacity", 0).appendTo(this._albumArt).animate({opacity: 1}, 400);
+                    
+                    this._albumArt.animate({ height: div.outerHeight() }, 400);
+                    
+                    next();
+                }.bind(this));
+            }
+        }
+        
+        if (this._albumArt.children().length) {
+            this._albumArt.stop(true, true).queue(function(next) {
+                this._albumArt.children().animate({opacity: 0}, 400, next);
+            }.bind(this));
+        }
+        
+        if (track.albumid) {        
+            var img = $("<img>"),
+                src = musicd.api.getAlbumImageUrl(track, 256);
+            
+            img.one("load", function() {
+                if (this.track && this.track.albumid === loadAlbumId) {
+                    this._albumArt.queue(function(next) {
+                        this._albumArt.empty();
+                        
+                        img.css("opacity", 0).appendTo(this._albumArt).animate({opacity: 1}, 400);
+                        
+                        this._albumArt.animate({ height: img.outerHeight() }, 400);
+                       
+                        next();
+                    }.bind(this));
+                }
+            }.bind(this)).one("error", unknown.bind(this));
+        
+            img.attr("src", src);
+        } else {
+            setTimeout(unknown.bind(this), 1);
+            return;
+        }
     },
     
     togglePlay: function() {

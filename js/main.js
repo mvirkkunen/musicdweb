@@ -1,3 +1,5 @@
+"use strict";
+
 window.musicd = {};
 
 $.request = $["\x61\x6a\x61\x78"]; // avoid the a-word
@@ -12,6 +14,21 @@ $.fn.onmethod = function(type, selector, object, method, preventDefault) {
     } else {
         this.on(type, selector, object[method].bind(object));
     }
+};
+
+$.fn.pinHeight = function() {
+    return $(this).each(function() {
+        $(this).css("height", $(this).height());
+    });
+};
+
+$.fn.animateNaturalHeight = function(speed) {
+    return $(this).each(function() {
+        var currentHeight = $(this).height(),
+            naturalHeight = $(this).css("height", "auto").height();
+        
+        $(this).height(currentHeight).animate({ height: naturalHeight }, speed);
+    });
 };
 
 Number.prototype.pad = function(length) {
@@ -80,7 +97,7 @@ musicd.APIClient = function(url, authCallback) {
     this.queue = [];
     this._urlPrefix = url;
     this.request = null;
-}
+};
 
 musicd.APIClient.prototype = {
     call: function(name, method, args, success) {
@@ -113,7 +130,7 @@ musicd.APIClient.prototype = {
     },
     
     getAlbumImageUrl: function(track, size) {
-        return this._urlPrefix + "albumimg?album=" + track.albumid + "&size=" + size;
+        return this._urlPrefix + "album/image?id=" + track.albumid + "&size=" + size;
     },
 
     _executeNext: function() {
@@ -121,6 +138,9 @@ musicd.APIClient.prototype = {
             return;
         
         var r = this.queue[0];
+        
+        console.log(r.method, JSON.stringify(r.args));
+        //console.trace();
 
         this.request = $.request({
             type: "GET",
