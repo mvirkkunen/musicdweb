@@ -257,6 +257,8 @@ body {
     height: 500px;
     position: relative;
     overflow: scroll;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 .virtual-list .rows table {

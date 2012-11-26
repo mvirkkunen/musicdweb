@@ -2,7 +2,7 @@
 
 musicd.VirtualList = function(el, rowProvider, columns) {
     this.el = $(el);
-    this._rowProvider = $.throttle(500, rowProvider);
+    this._cache = new ListCache($.throttle(500, rowProvider));
     
     this.el.addClass("virtual-list").append(
         this._menuButton = $("<a>")
@@ -23,9 +23,6 @@ musicd.VirtualList = function(el, rowProvider, columns) {
                 
     this._reqExtraItems = 100;
     this._drawExtraItems = 40;
-    this._cache = [];
-    this._cacheCleared = true;
-    this._totalCount = null;
     this._selectedIds = {};
     this._setColumns(columns);
     this._itemHeight = this._headingRow.first().outerHeight();
@@ -46,81 +43,44 @@ musicd.VirtualList.prototype = {
     
     update: function(callback) {
         var exactFirst = Math.floor(this._rows.scrollTop() / this._itemHeight),
-            visFirst = Math.floor(exactFirst / 2) * 2,
+            visOffset = Math.floor(exactFirst / 2) * 2,
             visLimit = Math.ceil(this._rows.height() / this._itemHeight) + 1,
-            visLast = visFirst + visLimit,
-            fullFirst = Math.max(0, visFirst - this._reqExtraItems),
-            fullLast = visLast + this._reqExtraItems;
+            completed = false;
         
-        if (this._totalCount !== null)
-            fullLast = Math.min(this._totalCount, fullLast);
+        console.log(visOffset, visLimit);
         
-        var request = false, state = 0, reqFirst = fullFirst, reqLast = fullLast;
-        for (var i = fullFirst; i < fullLast; i++) {
-            if (state == 0) {
-                if (!this._cache[i]) {
-                    reqFirst = i;
-                    request = true;
-                    state++;
-                }
-            } else if (state == 1) {
-                if (this._cache[i]) {
-                    reqLast = i;
-                    state++;
-                }
-            } else if (state == 2) {
-                if (!this._cache[i]) {
-                    reqLast = fullLast;
-                    break;
-                }
-            }
-        }
-        
-        if (request) {
-            this._rowProvider(reqFirst, reqLast - reqFirst, function(totalCount, rows) {
-                this._cacheCleared = false;
-                
-                rows.forEach(function(r, index) {
-                    this._cache[reqFirst + index] = r;
-                }, this);
-                
-                if (totalCount !== undefined && totalCount !== null)
-                    this._totalCount = totalCount;
-        
-                this._draw();
-                
-                if (callback)
-                    callback();
-            }.bind(this));
-            
-            this._draw();
-        } else {
+        this._cache.ensureItems(visOffset, visLimit, function() {
             this._draw();
             
             if (callback)
                 callback();
-        }
+            
+            completed = true;
+        }.bind(this));
+        
+        if (!completed)
+            this._draw();
     },
 
     _draw: function() {
         // delicious copypasta
         
-        if (this._cacheCleared)
+        if (this._cache.cleared)
             return;
         
         var exactFirst = Math.floor(this._rows.scrollTop() / this._itemHeight),
-            visFirst = Math.floor(exactFirst / 2) * 2,
+            visOffset = Math.floor(exactFirst / 2) * 2,
             visLimit = Math.ceil(this._rows.height() / this._itemHeight) + 1,
-            offset = Math.max(0, visFirst - this._drawExtraItems),
-            limit = Math.min(visLimit + this._drawExtraItems*2, this._totalCount || 0);
-            
+            offset = Math.max(0, visOffset - this._drawExtraItems),
+            limit = Math.min(visLimit + this._drawExtraItems*2, this._cache.totalCount || 0);
+                    
         this._tbody.empty();
         this._table.css("top", offset * this._itemHeight);
     
-        this._padder.height(this._itemHeight * (this._totalCount || 0));
+        this._padder.height(this._itemHeight * (this._cache.totalCount || 0));
         
         for (var i = offset; i < offset + limit; i++) {
-            var r = this._cache[i],
+            var r = this._cache.items[i],
                 tr = $("<tr>");
             
             if (r) {
@@ -184,9 +144,7 @@ musicd.VirtualList.prototype = {
     },
 
     refresh: function() {
-        this._cache = [];
-        this._cacheCleared = true;
-        this._totalCount = null;
+        this._cache.clear();
         this.scrollTo(0);
     },
     
