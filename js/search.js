@@ -75,27 +75,35 @@ musicd.Search.prototype = {
         
         musicd.session.setItem("Search.text", text);
 
-        if (!this._isValidSearch(text)) {
-            callback(0, []);
-        } else {
-            var args = { search: text, sort: "album,track,title", offset: offset, limit: limit };
+        var args = {
+            sort: "album,track,title",
+            offset: offset,
+            limit: limit
+        };
+        
+        // burqa, remove when parsing implemented on server side
+        
+        var m;
+        if (m = text.match(/^albumid:(\d+)$/i))
+            args.albumid = m[1];
+        else
+            args.search = text;
 
-            if (offset == 0)
-                args.total = 1;
+        if (offset == 0)
+            args.total = 1;
 
-            musicd.api.call(
-                null,
-                //(offset == 0 ? null : "Search.tracks"), // ensures first search is not aborted
-                "tracks",
-                args,
-                function(res) {
-                    if (offset == 0)
-                        this._totalResults.text(res.total || 0);
-                    
-                    callback((offset == 0 ? (res.total || 0) : null), res.tracks);
-                }.bind(this)
-            );
-        }
+        musicd.api.call(
+            //null,
+            (offset == 0 ? null : "Search.tracks"), // ensures first search is not aborted
+            "tracks",
+            args,
+            function(res) {
+                if (offset == 0)
+                    this._totalResults.text(res.total || 0);
+                
+                callback((offset == 0 ? (res.total || 0) : null), res.tracks);
+            }.bind(this)
+        );
     },
     
     _onItemActivate: function(track) {

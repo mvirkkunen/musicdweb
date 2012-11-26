@@ -24,6 +24,7 @@ musicd.VirtualList = function(el, rowProvider, columns) {
     this._reqExtraItems = 100;
     this._drawExtraItems = 40;
     this._cache = [];
+    this._cacheCleared = true;
     this._totalCount = null;
     this._selectedIds = {};
     this._setColumns(columns);
@@ -77,6 +78,8 @@ musicd.VirtualList.prototype = {
         
         if (request) {
             this._rowProvider(reqFirst, reqLast - reqFirst, function(totalCount, rows) {
+                this._cacheCleared = false;
+                
                 rows.forEach(function(r, index) {
                     this._cache[reqFirst + index] = r;
                 }, this);
@@ -102,19 +105,19 @@ musicd.VirtualList.prototype = {
     _draw: function() {
         // delicious copypasta
         
-        if (this._totalCount === null)
+        if (this._cacheCleared)
             return;
         
         var exactFirst = Math.floor(this._rows.scrollTop() / this._itemHeight),
             visFirst = Math.floor(exactFirst / 2) * 2,
             visLimit = Math.ceil(this._rows.height() / this._itemHeight) + 1,
             offset = Math.max(0, visFirst - this._drawExtraItems),
-            limit = Math.min(visLimit + this._drawExtraItems*2, this._totalCount);
+            limit = Math.min(visLimit + this._drawExtraItems*2, this._totalCount || 0);
             
         this._tbody.empty();
         this._table.css("top", offset * this._itemHeight);
     
-        this._padder.height(this._itemHeight * (this._totalCount || 1000));
+        this._padder.height(this._itemHeight * (this._totalCount || 0));
         
         for (var i = offset; i < offset + limit; i++) {
             var r = this._cache[i],
@@ -182,6 +185,7 @@ musicd.VirtualList.prototype = {
 
     refresh: function() {
         this._cache = [];
+        this._cacheCleared = true;
         this._totalCount = null;
         this.scrollTo(0);
     },
@@ -203,7 +207,7 @@ musicd.VirtualList.prototype = {
     },
     
     _resize: function() {
-        // burqa?
+        // burqa
         
         this._rows.height($(window).height() - this._rows.offset().top - 10);
         
