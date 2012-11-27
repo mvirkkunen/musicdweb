@@ -126,7 +126,7 @@ body {
     vertical-align: middle;
 }
 
-#track-info .dummy-album-art {
+.dummy-album-art {
     position: relative;
     width: 300px;
     height: 300px;
@@ -140,7 +140,7 @@ body {
     font-size: 14px;
 }
 
-#track-info .dummy-album-art h3 {
+.dummy-album-art h3 {
     font-size: 18px;
     margin-bottom: 20px;
 }
@@ -272,3 +272,93 @@ body {
 .track-list .artist { width: 20%; }
 .track-list .album { width: 20%; }
 .track-list .duration { width: 50px; text-align: right; }
+
+#shader {
+    position: fixed;    
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 99;
+}
+
+#album-browser {
+    position: fixed;
+    z-index: 100;
+    top: 20px;
+    left: 50%;
+    width: 1160px;
+    margin-left: -560px;
+    height: 920px;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+#album-browser .container {
+    position: relative;
+    padding: 20px;
+    height: 880px;
+    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#album-browser .padder {
+    position: relative;
+}
+
+#album-browser ul {
+    position: absolute;
+}
+
+#album-browser ul li {
+    float: left;
+    position: relative;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    width: 200px;
+    height: 200px;
+    margin: 10px;
+    text-align: center;
+    line-height: 200px;
+    list-style: none;
+    background: rgba(255, 255, 255, 0.2);
+    /*-webkit-transition: -webkit-transform 0.1s ease-in-out;*/
+    -webkit-transform-origin: 50% 50%;
+    z-index: 10;
+}
+
+#album-browser ul li img {
+    margin: 0;
+    max-width: 200px;
+    max-height: 200px;
+    vertical-align: middle;
+}
+
+#album-browser li:hover {
+    -webkit-transform: scale(1.25);
+    -webkit-transform-origin: 50% 50%;
+    z-index: 11;
+}
+
+#album-browser .dummy-album-art {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.5em;
+    cursor: default;
+}
+
+#album-browser .dummy-album-art h3 {
+    font-size: 15px;
+    margin-bottom: 10px;
+}

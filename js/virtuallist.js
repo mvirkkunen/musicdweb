@@ -47,8 +47,6 @@ musicd.VirtualList.prototype = {
             visLimit = Math.ceil(this._rows.height() / this._itemHeight) + 1,
             completed = false;
         
-        console.log(visOffset, visLimit);
-        
         this._cache.ensureItems(visOffset, visLimit, function() {
             this._draw();
             
@@ -63,10 +61,10 @@ musicd.VirtualList.prototype = {
     },
 
     _draw: function() {
-        // delicious copypasta
-        
         if (this._cache.cleared)
             return;
+            
+        // delicious copypasta
         
         var exactFirst = Math.floor(this._rows.scrollTop() / this._itemHeight),
             visOffset = Math.floor(exactFirst / 2) * 2,
@@ -138,14 +136,14 @@ musicd.VirtualList.prototype = {
         }.bind(this));
     },
     
-    scrollTo: function(index) {
+    scrollTo: function(index, callback) {
         this._rows.scrollTop(index * this._itemHeight);
-        this.update();
+        this.update(callback);
     },
 
-    refresh: function() {
+    refresh: function(callback) {
         this._cache.clear();
-        this.scrollTo(0);
+        this.scrollTo(0, callback);
     },
     
     _setColumns: function(columns) {

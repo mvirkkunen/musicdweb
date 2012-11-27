@@ -5,15 +5,12 @@ window.musicd = {};
 $.request = $["\x61\x6a\x61\x78"]; // avoid the a-word
 
 $.fn.onmethod = function(type, selector, object, method, preventDefault) {
-    if (preventDefault) {
-        this.on(type, selector, function(e) {
+    return this.on(type, selector, function(e) {
+        if (preventDefault)
             e.preventDefault();
 
-            return object[method].call(object, e);
-        });
-    } else {
-        this.on(type, selector, object[method].bind(object));
-    }
+        return object[method].call(object, e, this);
+    });
 };
 
 $.fn.pinHeight = function() {
@@ -76,6 +73,16 @@ musicd.Event.prototype = {
     }
 };
 
+musicd.shader = {
+    show: function() {
+        $("#shader").fadeIn(200);
+    },
+    
+    hide: function() {
+        $("#shader").fadeOut(200);
+    }
+};
+
 musicd.Session = function Session() {
     
 }
@@ -129,8 +136,8 @@ musicd.APIClient.prototype = {
         return url;
     },
     
-    getAlbumImageUrl: function(track, size) {
-        return this._urlPrefix + "album/image?id=" + track.albumid + "&size=" + size;
+    getAlbumImageURL: function(albumId, size) {
+        return this._urlPrefix + "album/image?id=" + albumId + "&size=" + size;
     },
 
     _executeNext: function() {
@@ -209,11 +216,11 @@ $(function() {
     musicd.api = new musicd.APIClient("http://lumpio.dy.fi:1337/");
     musicd.session = new musicd.Session();    
     
-    musicd.player = new musicd.Player("#player", "#track-info");
+    var player = new musicd.Player("#player", "#track-info");
     
-    var search = new musicd.Search("#search", musicd.player);
+    var search = new musicd.Search("#search", player);
     
-    musicd.player.onStateChange.addListener(function(state) {
+    player.onStateChange.addListener(function(state) {
         window.postMessage({
             type: "STATE_CHANGE",
             text: state == musicd.Player.PLAYING ? "play" : "pause"
@@ -222,6 +229,16 @@ $(function() {
     
     window.addEventListener("message", function(e) {
         if (e.data.type == "TOGGLE_PLAY")
-            musicd.player.togglePlay();
+            player.togglePlay();
     });
+    
+    var albumBrowser = new musicd.AlbumBrowser("#album-browser", search);
+    
+    $(".buttons .albums").click(function(e) {
+        e.stopPropagation();
+        albumBrowser.open();
+    });
+    
+    if (location.href.match(/[?&]albums\b/))
+        albumBrowser.open();
 });

@@ -11,14 +11,14 @@ musicd.Player = function(el, trackInfo) {
     this.audio.addEventListener("timeupdate", this._audioTimeUpdate.bind(this), true);
     this.audio.addEventListener("ended", this._audioEnded.bind(this), true);
     
-    var a = this.audio;
+    /*var a = this.audio;
     setInterval(function() {
         var d = ("debög: "
             + " networkState: " + a.networkState
             + " seeking: " + a.seeking
             + " error: " + a.error);
         $("#debug").text(d);
-    }, 1000);
+    }, 1000);*/
 
     this.onAudioEnd = new musicd.Event();
     this.onStateChange = new musicd.Event();
@@ -237,7 +237,7 @@ musicd.Player.prototype = {
         
         if (track.albumid) {        
             var img = $("<img>"),
-                src = musicd.api.getAlbumImageUrl(track, 256);
+                src = musicd.api.getAlbumImageURL(track.albumid, 256);
             
             img.one("load", function() {
                 if (this.track && this.track.albumid === loadAlbumId) {

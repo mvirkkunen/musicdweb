@@ -37,6 +37,18 @@ musicd.Search = function(el, player) {
 };
 
 musicd.Search.prototype = {
+    burkhaPlayFirst: function() {
+        var tr = $(".virtual-list tbody tr:first");
+        if (tr.length) {
+            var item = tr.data("item");
+            
+            this.player.setTrack(item);
+            
+            this._vlist.clearSelection();
+            this._vlist.setItemSelected(item.id, true);
+        }
+    },
+    
     _burkhaNavigate: function(dir) {
         var tr = $(".virtual-list tr.selected")[dir]();
         if (tr.length) {
@@ -57,7 +69,8 @@ musicd.Search.prototype = {
     
     setSearch: function(text, callback) {
         this._search.val(text);
-        this._vlist.update(callback);
+        this._lastSearch = text;
+        this._vlist.refresh(callback);
     },
     
     _searchKeyUp: function() {

@@ -1,9 +1,9 @@
 "use strict";
 
-var ListCache = function(itemProvider, pageSize) {
+var ListCache = function(itemProvider, pageSize, extraPages) {
     this._itemProvider = itemProvider; // function(offset, limit, callback(totalCount, items))
     this._pageSize = pageSize || 20;
-    this._extraPages = 5;
+    this._extraPages = extraPages || 5;
     this.clear();
 };
 
@@ -66,12 +66,14 @@ ListCache.prototype = {
                         this.totalCount = totalCount;
                         this._totalPages = Math.max(Math.ceil(totalCount / this._pageSize), 1);
                     }
-            
-                    callback();
+                    
+                    if (callback)
+                        callback();
                 }.bind(this)
             );
         } else {
-            callback();
+            if (callback)
+                callback();
         }
     },
     
