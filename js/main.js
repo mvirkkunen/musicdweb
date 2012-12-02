@@ -130,7 +130,7 @@ musicd.authenticate = function(api) {
 
 $(function() {
     var reasons = [];
-    
+
     if (!Array.prototype.forEach)
         reasons.push("your browser doesn't seem to support modern JavaScript! Shame on you!");
     
