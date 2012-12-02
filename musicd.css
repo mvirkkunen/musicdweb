@@ -207,7 +207,7 @@ body {
     text-align: left;
     white-space: nowrap;
     overflow: hidden;
-    padding: 0 4px;
+    padding: 1px 4px;
     height: 16px;
     vertical-align: middle;
     text-align: left;
@@ -223,14 +223,18 @@ body {
 }
 
 .virtual-list td {
-    border-top: 2px solid transparent;
-    border-bottom: 2px solid transparent;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
     border-right: 1px solid #DDD;
 }
 
+.virtual-list td:first-child {
+    border-left: 1px solid transparent;
+}
+
 .virtual-list th {
-    border-top: 2px solid #CCC;
-    border-bottom: 2px solid #CCC;
+    border-top: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
     border-right: 1px solid #DDD;
     background: #EEE;
 }
@@ -241,8 +245,17 @@ body {
 
 .virtual-list tr.current td {
     background: #EEF ;
-    border-top: 2px solid #DDF;
-    border-bottom: 2px solid #DDF;
+    border-top: 1px solid #DDF;
+    border-bottom: 1px solid #DDF;
+}
+
+.virtual-list tr.highlighted td {
+    border-top: 1px dotted #888;
+    border-bottom: 1px dotted #888;
+}
+
+.virtual-list tr.highlighted td:first-child {
+    border-left: 1px dotted #888;
 }
 
 .virtual-list  table {
@@ -394,7 +407,7 @@ body {
     border: 1px solid #000;
     background: #800;
     color: #FFF;
-    padding: 10px;    
+    padding: 10px;
 }
 
 #invalid-browser {

@@ -24,7 +24,12 @@ musicd.Search = function(el, player) {
             {name: "album", title: "Album"},
             {name: "duration", title: "Length", formatter: musicd.formatTime},
         ]);
-        
+    
+    this.el.on("click dblclick scroll", function() {
+        if (!this._search.is(":focus"));
+            this._search.focus();
+    }.bind(this));
+    this._search.onmethod("keydown", null, this._vlist, "handleKeyEvent");
     this._vlist.onItemActivate.addListener(this._onItemActivate.bind(this));
 };
 

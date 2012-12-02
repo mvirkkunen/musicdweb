@@ -23,16 +23,27 @@ musicd.VirtualList = function(el, rowProvider, columns) {
                 
     this._reqExtraItems = 100;
     this._drawExtraItems = 40;
+    this._drawnPos = null;
     this._selectedIds = {};
     this._currentId = null;
+    this._highlightedIndex = null;
     this._setColumns(columns);
     this._itemHeight = this._headingRow.first().outerHeight();
     this._resize();
     
     this.onItemActivate = new musicd.Event();
     
-    this._rows.on("scroll", $.debounce(100, function() { this.update(); }).bind(this));
-    this._tbody.onmethod("dblclick", "td", this, "_rowDblclick");
+    this._debouncedUninhibitRowHighlight = $.debounce(200, function() {
+        this._rowHighlightInhibited = false;
+    }.bind(this));
+    
+    this._rows.on("scroll", $.debounce(100, function() { this.update(); }.bind(this)));
+    
+    // TODO: This is just to test phone compatibility
+    var isAndroid = !!navigator.userAgent.match(/android/i);
+    
+    this._tbody.onmethod("mouseover", "tr", this, "_rowHighlight");
+    this._tbody.onmethod(isAndroid ? "click" : "dblclick", "td", this, "_rowDblclick");
     $(window).onmethod("resize", null, this, "_resize");
 };
 
@@ -46,10 +57,11 @@ musicd.VirtualList.prototype = {
         var exactFirst = Math.floor(this._rows.scrollTop() / this._itemHeight),
             visOffset = Math.floor(exactFirst / 2) * 2,
             visLimit = Math.ceil(this._rows.height() / this._itemHeight) + 1,
-            completed = false;
+            completed = false,
+            force = false;
         
         this._cache.ensureItems(visOffset, visLimit, function() {
-            this._draw();
+            this._draw(force);
             
             if (callback)
                 callback();
@@ -57,15 +69,42 @@ musicd.VirtualList.prototype = {
             completed = true;
         }.bind(this));
         
-        if (!completed)
+        if (!completed) {
             this._draw();
+            force = true;
+        }
+    },
+    
+    handleKeyEvent: function(e) {
+        if (e.which == $.ui.keyCode.UP) {
+            this._adjustHighlightedIndex(-1);
+        } else if (e.which == $.ui.keyCode.DOWN) {
+            this._adjustHighlightedIndex(1);
+        } else if (e.which == $.ui.keyCode.PAGE_UP) {
+            this._adjustHighlightedIndex(-10);
+        } else if (e.which == $.ui.keyCode.PAGE_DOWN) {
+            this._adjustHighlightedIndex(10);
+        } else if (e.which == $.ui.keyCode.ENTER) {
+            this._cache.ensureItems(this._highlightedIndex, 1, function() {
+                var item = this._cache.items[this._highlightedIndex];
+                if (item)
+                    this.onItemActivate.fire(item);
+            }.bind(this));
+        }
     },
 
-    _draw: function() {
+    _draw: function(force) {
         if (this._cache.cleared)
             return;
-            
-        // delicious copypasta
+        
+        var pos = this._rows.scrollTop();
+    
+        if (!force && this._drawnPos !== null && Math.abs(this._drawnPos - pos) < 50)
+            return;
+        
+        this._drawnPos = pos;
+        
+        this._inhibitRowHighlight();
         
         var exactFirst = Math.floor(this._rows.scrollTop() / this._itemHeight),
             visOffset = Math.floor(exactFirst / 2) * 2,
@@ -80,7 +119,7 @@ musicd.VirtualList.prototype = {
         
         for (var i = offset; i < offset + limit; i++) {
             var r = this._cache.items[i],
-                tr = $("<tr>");
+                tr = $("<tr>").data("index", i);
             
             if (r) {
                 tr.data("item", r).data("id", r.id);
@@ -114,6 +153,9 @@ musicd.VirtualList.prototype = {
                 }, this);
             }
             
+            if (i == this._highlightedIndex)
+                tr.addClass("highlighted");
+            
             this._tbody.append(tr)
         }
     },
@@ -141,9 +183,43 @@ musicd.VirtualList.prototype = {
     },
     
     setCurrentItem: function(id) {
+        if (id === this._currentId)
+            return;
+        
         this._currentId = id;
         
-        this._draw();
+        this._tbody.children().removeClass("current").filter(function() {
+            return $(this).data("id") === id;
+        }).addClass("current");
+    },
+    
+    _adjustHighlightedIndex: function(delta) {
+        this._inhibitRowHighlight();
+        this.setHighlightedIndex(this._highlightedIndex != null
+            ? this._highlightedIndex + delta
+            : Math.ceil(this._rows.scrollTop() / this._itemHeight));
+    },
+    
+    setHighlightedIndex: function(index) {
+        if (index === this._highlightedIndex)
+            return;
+        
+        this._highlightedIndex = index = Math.max(0, Math.min(index, this._cache.totalCount || 0));
+        
+        var scrollTop = this._rows.scrollTop(),
+            scrollHeight = this._rows.height();
+        
+        if ((this._highlightedIndex + 1) * this._itemHeight > scrollTop + scrollHeight)
+            scrollTop = (this._highlightedIndex + 1) * this._itemHeight - scrollHeight;
+        
+        if (this._highlightedIndex * this._itemHeight < scrollTop)
+            scrollTop = this._highlightedIndex * this._itemHeight;
+        
+        this._rows.scrollTop(scrollTop).trigger("scroll")
+        
+        this._tbody.children().removeClass("highlighted").filter(function() {
+            return $(this).data("index") === index;
+        }).addClass("highlighted");
     },
     
     getItemIndex: function(id) {
@@ -173,6 +249,8 @@ musicd.VirtualList.prototype = {
 
     refresh: function(callback) {
         this._cache.clear();
+        this._highlightedIndex = null;
+        this._drawnPos = null;
         this.scrollTo(0, callback);
     },
     
@@ -192,8 +270,18 @@ musicd.VirtualList.prototype = {
             this.onItemActivate.fire(tr.data("item"));
     },
     
+    _inhibitRowHighlight: function() {
+        this._rowHighlightInhibited = true;
+        this._debouncedUninhibitRowHighlight();
+    },
+    
+    _rowHighlight: function(e) {
+        if (!this._rowHighlightInhibited)
+            this.setHighlightedIndex($(e.target).closest("tr").data("index"));
+    },
+    
     _resize: function() {
-        // TODO: weird dependency
+        // TODO: remove weird dependency
         
         this._rows.height($(window).height() - this._rows.offset().top - 10);
         
