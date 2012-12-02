@@ -113,6 +113,21 @@ musicd.Session.prototype = {
     }
 };
 
+musicd.authenticate = function(api) {
+    musicd.shader.show();
+    $("#authentication").show().find("input[type=text]").eq(0).focus();
+    
+    api.authenticate("user", "password", function() {
+        // success
+        
+        musicd.shader.hide();
+    }, function() {
+        // error
+        
+        
+    });
+};
+
 $(function() {
     var reasons = [];
     
@@ -128,7 +143,7 @@ $(function() {
     if (reasons.length)
         $("#invalid-browser").show().find(".reason").text(reasons.join(", "));
     
-    musicd.api = new musicd.APIClient("http://lumpio.dy.fi:1337/");
+    musicd.api = new musicd.APIClient("/");
     musicd.session = new musicd.Session();    
     
     var player = new musicd.Player("#player", "#track-info");

@@ -88,19 +88,26 @@
             </div>
         </div>
         
-        <div id="authentication">
+        <div id="authentication" class="dialog" style="display: none;">
             <h2>Authentication required</h2>
             
-            <fieldset>
-                <label>
-                    <span class="name">User:</span>
-                    <input type="text" class="user" />
+            <p>This server requires authentication.</p>
+            
+            <form>
+                <label class="field">
+                    <span class="label">User:</span>
+                    <input type="text" class="value user" />
                 </label>
-                <label>
-                    <span class="name">Password:</span>
-                    <input type="text" class="password" />
+                <label class="field">
+                    <span class="label">Password:</span>
+                    <input type="password" class="value password" />
                 </label>
-            </fieldset>
+                <div class="field">
+                    <div class="value">
+                        <button type="submit" class="submit">Login</button>
+                    </div>
+                </div>
+            </form>
         </div>
         <div id="album-browser" style="display: none;"></div>
         <div id="shader" style="display: none;"></div>

@@ -17,6 +17,10 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
     display: block;
 }
 
+p {
+    margin-bottom: 1.0em;
+}
+
 strong {
     font-weight: bold;
 }
@@ -392,4 +396,47 @@ body {
     color: #FFF;
     font-size: 15px;
     padding: 10px;
+}
+
+.dialog {
+    position: fixed;
+    z-index: 200;
+    left: 50%;
+    top: 20px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    padding: 10px;
+    width: 400px;
+    margin-left: -200px;
+    background: #FFF;
+    border: 1px solid #000;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.dialog h2 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+form .field {
+    display: block;
+    margin-bottom: 10px;
+}
+
+form .label {
+    display: block;
+    float: left;
+    width: 100px;
+}
+
+form .value {
+    display: block;
+    margin-left: 110px;
+}
+
+#authentication {
+
 }

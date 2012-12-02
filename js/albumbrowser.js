@@ -23,7 +23,6 @@ musicd.AlbumBrowser = function(el, search) {
                 this._ul = $("<ul>"))));
                 
     this.el.on("click", function(e) { e.stopPropagation(); });
-    $(document).on("click", this.close.bind(this));
 
     this._container.on("scroll", this.update.bind(this));
     this._ul.onmethod("dblclick", "li", this, "_albumDblClick");
@@ -51,6 +50,8 @@ musicd.AlbumBrowser.prototype = {
         this.el.fadeIn();
         musicd.shader.show();
         this.update();
+        
+        $(document).one("click", this.close.bind(this));
     },
     
     close: function() {
