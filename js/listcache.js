@@ -4,15 +4,32 @@ var ListCache = function(itemProvider, pageSize, extraPages) {
     this._itemProvider = itemProvider; // function(offset, limit, callback(totalCount, items))
     this._pageSize = pageSize || 20;
     this._extraPages = extraPages || 5;
+    this._version = 0;
     this.clear();
 };
 
 ListCache.prototype = {
     clear: function() {
         this.totalCount = null;
+        this._totalPages = null;
         this.cleared = true;
+        this._version = (this._version + 1) % 65536;
         this.items = [];
         this._loaded = {};
+    },
+    
+    getItemIndex: function(predicate) {
+        for (var page in this._loaded) {
+            for (var i = page * this._pageSize, e = (page + 1) * this._pageSize;
+                 i < e;
+                 i++)
+            {
+                if (this.items[i] && predicate(this.items[i]))
+                    return i;
+            }
+        }
+        
+        return -1;
     },
     
     ensureItems: function(offset, limit, callback) {
@@ -20,7 +37,8 @@ ListCache.prototype = {
             exactFirstPage = Math.floor(offset / this._pageSize),
             firstPage = Math.max(exactFirstPage - this._extraPages, 0),
             lastPage = exactFirstPage + Math.ceil(limit / this._pageSize) + this._extraPages,
-            first, last;
+            first, last,
+            version = this._version;
         
         if (this._totalPages)
             lastPage = Math.min(lastPage, this._totalPages);
@@ -53,6 +71,9 @@ ListCache.prototype = {
                 reqOffset,
                 (last - first) * this._pageSize,
                 function(totalCount, items) {
+                    if (this._version != version)
+                        return;
+                    
                     this.cleared = false;
                     
                     for (i = firstPage; i < lastPage; i++)

@@ -49,6 +49,20 @@ musicd.formatTime = function(time, lengthHint) {
     return s;
 }
 
+musicd.parseQueryString = function(qs) {
+    var r = {};
+    
+    qs.split(/&/).forEach(function(pair) {
+        var p = pair.indexOf("=");
+        if (p == -1)
+            r[decodeURIComponent(pair)] = true;
+        else
+            r[decodeURIComponent(pair.substr(0, p))] = decodeURIComponent(pair.substr(p + 1));
+    });
+    
+    return r;
+};
+
 musicd.Event = function Event() {
     
 };
@@ -99,120 +113,21 @@ musicd.Session.prototype = {
     }
 };
 
-musicd.APIClient = function(url, authCallback) {
-    this.authCallback = authCallback;
-    this.queue = [];
-    this._urlPrefix = url;
-    this.request = null;
-};
-
-musicd.APIClient.prototype = {
-    call: function(name, method, args, success) {
-        if (name) {
-            if (this.request && this.requestName && this.requestName == name)
-                this.request.abort();
-
-            this.queue = this.queue.filter(function(i) {
-                return !(i.name && i.name === name);
-            });
-        }
-
-        this.queue.push({
-            name: name,
-            method: method,
-            args: args,
-            success: success
-        });
-
-        this._executeNext();
-    },
-    
-    getTrackURL: function(track, seek) {
-        var url = this._urlPrefix + "open?id=" + track.id;
-        
-        if (seek)
-            url += "&seek=" + seek;
-        
-        return url;
-    },
-    
-    getAlbumImageURL: function(albumId, size) {
-        return this._urlPrefix + "album/image?id=" + albumId + "&size=" + size;
-    },
-
-    _executeNext: function() {
-        if (this.request || !this.queue.length)
-            return;
-        
-        var r = this.queue[0];
-        
-        console.log(r.method, JSON.stringify(r.args));
-        //console.trace();
-
-        this.request = $.request({
-            type: "GET",
-            url: this._urlPrefix + r.method,
-            data: r.args,
-            dataType: "json",
-            success: this._requestSuccess.bind(this),
-            error: this._requestError.bind(this)
-        });
-        this.requestName = r.name;
-    },
-
-    _requestSuccess: function(res) {
-        var r = this.queue.shift();
-
-        r.success(res);
-
-        this.request = null;
-        this.requestName = null;
-
-        this._executeNext();
-    },
-
-    _requestError: function(xhr) {
-        if (xhr.status == 401) {
-            this.authCallback(this);
-        } else {
-            if (xhr.getAllResponseHeaders())
-                alert("API error");
-
-            this.queue.shift();
-    
-            this.request = null;
-            this.requestName = null;
-
-            this._executeNext();
-        }
-    },
-
-    authenticate: function(username, password, success, error) {
-        $.request({
-            type: "GET",
-            url: this._urlPrefix + "login",
-            args: {
-                username: username,
-                password: password
-            },
-            dataType: "json",
-            success: function(res) {
-                if (res.error) {
-                    error(res.error);
-                    return;
-                }
-
-                success();
-                this._executeNext();
-            },
-            error: function(xhr) {
-                alert("Auth fail (" + xhr.status + " " + xhr.statusText + ")");
-            }
-        }.bind(this))
-    }
-};
-
 $(function() {
+    var reasons = [];
+    
+    if (!Array.prototype.forEach)
+        reasons.push("your browser doesn't seem to support modern JavaScript! Shame on you!");
+    
+    if (!window.Audio)
+        reasons.push("your browser doesn't seem to support HTML5 Audio. Shame on you!");
+    
+    if (!new Audio().canPlayType("audio/mpeg"))
+        reasons.push("your browser doesn't seem to support MP3. Vorbis support is on the TODO list!");
+    
+    if (reasons.length)
+        $("#invalid-browser").show().find(".reason").text(reasons.join(", "));
+    
     musicd.api = new musicd.APIClient("http://lumpio.dy.fi:1337/");
     musicd.session = new musicd.Session();    
     
@@ -241,4 +156,59 @@ $(function() {
     
     if (location.href.match(/[?&]albums\b/))
         albumBrowser.open();
+    
+    var m = location.href.match(/#(.+)$/);
+    if (m) {
+        var initial = musicd.parseQueryString(m[1]);
+        
+        switch (initial.repeat) {
+            case "list":
+                player.setRepeatMode(musicd.Player.LIST);
+                break;
+            case "single":
+                player.setRepeatMode(musicd.Player.SINGLE);
+                break;
+        }
+        
+        if (initial.search) {
+            search.setSearch(initial.search, function() {
+                if (initial.trackid) {
+                    var track = search.getAdjacentTrack(parseInt(initial.trackid, 10), 0, function(track) {
+                        if (track) {
+                            player.setTrack(track);
+                            
+                            if (initial.autoplay)
+                                player.play();
+                        }
+                    });
+                }
+            });
+        }
+    }
+    
+    $(".current-link").click(function(e) {
+        e.preventDefault();
+        
+        var args = [];
+        
+        args.push("search=" + encodeURIComponent(search.getSearch()));
+        
+        if (player.track)
+            args.push("trackid=" + player.track.id);
+            
+        if (player.repeatMode == musicd.Player.LIST)
+            args.push("repeat=list");
+        else if (player.repeatMode == musicd.Player.SINGLE)
+            args.push("repeat=single");
+        
+        if (player.state == musicd.Player.PLAYING)
+            args.push("autoplay");
+        
+        location.href = "#" + args.join("&");
+    });
+    
+    $(".album-art").dblclick(function(e) {
+        if (player.track)
+            search.setSearch("albumid:" + player.track.albumid);
+    });
 });

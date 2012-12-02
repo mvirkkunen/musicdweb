@@ -235,7 +235,7 @@ body {
     background: #F8F8F8;
 }
 
-.virtual-list tr.selected td {
+.virtual-list tr.current td {
     background: #EEF ;
     border-top: 2px solid #DDF;
     border-bottom: 2px solid #DDF;
@@ -329,9 +329,27 @@ body {
     line-height: 200px;
     list-style: none;
     background: rgba(255, 255, 255, 0.2);
-    /*-webkit-transition: -webkit-transform 0.1s ease-in-out;*/
+    -webkit-transition: -webkit-transform 0.2s ease-in-out;
     -webkit-transform-origin: 50% 50%;
     z-index: 10;
+}
+
+#album-browser ul li .info {
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    left: 0;
+    margin-top: -1px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    padding: 10px;
+    box-sizing: normal;
+    color: #FFF;
+    background: rgba(0, 0, 0, 0.7);
+    line-height: 1.2em;
+    opacity: 0;
+    border-radius: 0 0 5px 5px;
+    -webkit-transition: opacity 0.15s ease-in-out;
 }
 
 #album-browser ul li img {
@@ -341,10 +359,14 @@ body {
     vertical-align: middle;
 }
 
-#album-browser li:hover {
+#album-browser.allow-hover li:hover {
     -webkit-transform: scale(1.25);
     -webkit-transform-origin: 50% 50%;
     z-index: 11;
+}
+
+#album-browser.allow-hover li:hover .info {
+    opacity: 1;
 }
 
 #album-browser .dummy-album-art {
@@ -361,4 +383,13 @@ body {
 #album-browser .dummy-album-art h3 {
     font-size: 15px;
     margin-bottom: 10px;
+}
+
+#invalid-browser {
+    margin: 0 0 10px 0;
+    border: 1px solid #000;
+    background: #800;
+    color: #FFF;
+    font-size: 15px;
+    padding: 10px;
 }

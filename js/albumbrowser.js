@@ -8,6 +8,10 @@ musicd.AlbumBrowser = function(el, search) {
     this._rowSize = 5;
     this._images = {};
     
+    this._allowHover = $.debounce(200, function() {
+        this.el.addClass("allow-hover");
+    }.bind(this));
+    
     this._cache = new ListCache(
         $.throttle(500, this._itemProvider.bind(this)),
         this._rowSize,
@@ -39,7 +43,7 @@ musicd.AlbumBrowser.prototype = {
     
     _albumDblClick: function(e, item) {
         this._search.setSearch("albumid:" + $(item).data("album").id, function() {
-            this._search.burkhaPlayFirst();
+            this._search.playFirst();
         }.bind(this));
     },
     
@@ -58,6 +62,9 @@ musicd.AlbumBrowser.prototype = {
         var visOffset = Math.floor(this._container.scrollTop() / this._size),
             visLimit = (Math.ceil(this._container.height() / this._size) + 1),
             completed = false;
+        
+        this.el.removeClass("allow-hover");
+        this._allowHover();
         
         this._cache.ensureItems(
             visOffset * this._rowSize,
@@ -116,6 +123,8 @@ musicd.AlbumBrowser.prototype = {
                         .appendTo(li)
                         .attr("src", musicd.api.getAlbumImageURL(album.id, 256));
                 }
+                
+                li.append($("<div>").addClass("info").text(album.album || "Untitled album"));
             }
             
             this._ul.append(li);
