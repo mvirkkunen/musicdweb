@@ -57,6 +57,14 @@ musicd.Player = function(el, trackInfo) {
     this.stop();
     this._updateSeekable();
     this._updateCurrentTime();
+    
+    // Workaround for Chromium sometimes not sending the ended event
+    // Perhaps related to
+    // http://code.google.com/p/chromium/issues/detail?id=86830 ?
+    setInterval(function() {
+        if (this.audio.currentTime > 315360000) // 10 years
+            this._audioEnded();
+    }.bind(this), 1000);
 };
 
 $.extend(musicd.Player, {
