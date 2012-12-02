@@ -271,6 +271,4 @@ $(function() {
         
         location.reload();
     });
-    
-    $(document).on("click dblclick", musicd.focusDefault);
 });

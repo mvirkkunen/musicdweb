@@ -14,7 +14,7 @@ musicd.Search = function(el, player) {
     
     this._totalResults = this.el.find(".total-results");
     
-    this._search.on("keyup", $.throttle(250, this._searchKeyUp.bind(this)));
+    this._search.on("keyup search", $.throttle(250, this._searchKeyUp.bind(this)));
     
     this._vlist = new musicd.VirtualList(this.el.find(".track-list"),
         this._itemProvider.bind(this),
@@ -26,11 +26,9 @@ musicd.Search = function(el, player) {
             {name: "duration", title: "Length", formatter: musicd.formatTime},
         ]);
     
-    this.el.on("click dblclick scroll", function() {
+    this.el.on("click dblclick", function() {
         musicd.defaultFocusElement = this._search;
-        
-        if (!this._search.is(":focus"))
-            this._search.focus();
+        musicd.focusDefault();
     }.bind(this));
     this._search.onmethod("keydown", null, this._vlist, "handleKeyEvent");
     this._vlist.onItemActivate.addListener(this._onItemActivate.bind(this));

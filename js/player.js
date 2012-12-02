@@ -9,15 +9,6 @@ musicd.Player = function(el, trackInfo) {
     window.debugaudio = this.audio;
     this.audio.addEventListener("timeupdate", this._audioTimeUpdate.bind(this), true);
     this.audio.addEventListener("ended", this._audioEnded.bind(this), true);
-    
-    /*var a = this.audio;
-    setInterval(function() {
-        var d = ("debög: "
-            + " networkState: " + a.networkState
-            + " seeking: " + a.seeking
-            + " error: " + a.error);
-        $("#debug").text(d);
-    }, 1000);*/
 
     this.onAudioEnd = new musicd.Event();
     this.onStateChange = new musicd.Event();
@@ -65,6 +56,8 @@ musicd.Player = function(el, trackInfo) {
         if (this.audio.currentTime > 315360000) // 10 years
             this._audioEnded();
     }.bind(this), 1000);
+    
+    this.el.on("click dblclick", musicd.focusDefault);
 };
 
 $.extend(musicd.Player, {
