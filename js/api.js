@@ -75,43 +75,43 @@ musicd.APIClient.prototype = {
     },
 
     _requestError: function(xhr) {
-        if (xhr.status == 401) {
+        this.request = null;
+        this.requestName = null;
+        
+        if (xhr.status == 403) {
             this.authCallback(this);
         } else {
             if (xhr.getAllResponseHeaders())
                 alert("API error");
 
             this.queue.shift();
-    
-            this.request = null;
-            this.requestName = null;
 
             this._executeNext();
         }
     },
 
-    authenticate: function(username, password, success, error) {
+    authenticate: function(user, password, success, error) {
         $.request({
             type: "GET",
-            url: this._urlPrefix + "login",
-            args: {
-                username: username,
+            url: this._urlPrefix + "auth",
+            data: {
+                user: user,
                 password: password
             },
             dataType: "json",
             success: function(res) {
-                if (res.error) {
-                    error(res.error);
+                if (res.auth != "ok") {
+                    error();
                     return;
                 }
 
                 success();
                 this._executeNext();
-            },
+            }.bind(this),
             error: function(xhr) {
                 alert("Auth fail (" + xhr.status + " " + xhr.statusText + ")");
-            }
-        }.bind(this))
+            }.bind(this)
+        })
     }
 };    
 

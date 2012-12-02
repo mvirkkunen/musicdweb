@@ -18,12 +18,13 @@
         <script src="js/albumbrowser.js"></script>
     </head>
     <body>
-        <div id="invalid-browser" style="display: none;">
+        <div id="invalid-browser" class="error" style="display: none;">
             <strong>Warning:</strong> Your browser is not supported (reason: <span class="reason"></span>)
         </div>
+        
         <div id="player">
             <div id="server-status">
-                <p>Connected as <strong>lumpio</strong></p>
+                <a href="#" class="log-out">Log out</a>
             </div>
         
             <div class="buttons">
@@ -54,7 +55,7 @@
         <div id="track-info">
             <div class="titles">
                 <div class="titles-container">
-                    <h2 class="track-name"><span>musicdweb 0.002 closed alpha / premium enter price edition</span></h2>
+                    <h2 class="track-name" style="display: none;"><span></span></h2>
                     <h2 class="artist" style="display: none;">by <span></span></h2>
                     <h2 class="album" style="display: none;">on <span></span></h2>
                 </div>
@@ -91,11 +92,15 @@
         <div id="authentication" class="dialog" style="display: none;">
             <h2>Authentication required</h2>
             
+            <div class="error" style="display: none;">
+                Authentication failure. Check username and password.
+            </div>
+            
             <p>This server requires authentication.</p>
             
             <form>
                 <label class="field">
-                    <span class="label">User:</span>
+                    <span class="label">Username:</span>
                     <input type="text" class="value user" />
                 </label>
                 <label class="field">

@@ -114,18 +114,40 @@ musicd.Session.prototype = {
 };
 
 musicd.authenticate = function(api) {
-    musicd.shader.show();
-    $("#authentication").show().find("input[type=text]").eq(0).focus();
+    var dialog = $("#authentication");
+    if (dialog.is(":visible"))
+        return;
+        
+    function auth(e) {
+        e.preventDefault();
+        
+        dialog.find(".error").hide();
+        
+        var user = $(".user").val();
+        
+        api.authenticate(
+            user,
+            dialog.find(".password").val(),
+            function() {
+                dialog.find("form").off("submit");
+                dialog.fadeOut();
+                musicd.shader.hide();
+                $("#server-status").fadeIn();
+                $("#server-status .user").text(user);
+            },
+            function() {
+                dialog.find(".error").slideDown();
+                dialog.find(user ? ".password" : ".user").focus().select();
+            }
+        );
+    }
     
-    api.authenticate("user", "password", function() {
-        // success
-        
-        musicd.shader.hide();
-    }, function() {
-        // error
-        
-        
-    });
+    musicd.shader.show();
+    
+    dialog.fadeIn()
+    dialog.find(".error").hide();
+    dialog.find("input[type=text]").eq(0).focus();
+    dialog.find("form").on("submit", auth);
 };
 
 $(function() {
@@ -143,7 +165,7 @@ $(function() {
     if (reasons.length)
         $("#invalid-browser").show().find(".reason").text(reasons.join(", "));
     
-    musicd.api = new musicd.APIClient("/");
+    musicd.api = new musicd.APIClient("/", musicd.authenticate);
     musicd.session = new musicd.Session();    
     
     var player = new musicd.Player("#player", "#track-info");
@@ -225,5 +247,14 @@ $(function() {
     $(".album-art").dblclick(function(e) {
         if (player.track)
             search.setSearch("albumid:" + player.track.albumid);
+    });
+    
+    $("#server-status .log-out").click(function(e) {
+        e.preventDefault();
+        
+        document.cookie = "user=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
+        document.cookie = "password=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
+        
+        location.reload();
     });
 });
