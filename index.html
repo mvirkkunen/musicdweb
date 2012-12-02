@@ -10,6 +10,7 @@
         <script src="jquery-throttle.min.js"></script>
         <script src="http://code.jquery.com/ui/1.8.21/jquery-ui.min.js"></script>
         <script src="js/main.js"></script>
+        <script src="js/api.js"></script>
         <script src="js/listcache.js"></script>
         <script src="js/virtuallist.js"></script>
         <script src="js/player.js"></script>
@@ -17,6 +18,9 @@
         <script src="js/albumbrowser.js"></script>
     </head>
     <body>
+        <div id="invalid-browser" style="display: none;">
+            <strong>Warning:</strong> Your browser is not supported (reason: <span class="reason"></span>)
+        </div>
         <div id="player">
             <div id="server-status">
                 <p>Connected as <strong>lumpio</strong></p>
@@ -30,6 +34,17 @@
                 <button class="albums">▞▞</button>
                 
                 <span class="current-time">--:-- / --:--</span>
+                
+                <label>
+                    Repeat: 
+                    <select class="repeat">
+                        <option value="0">Off</option>
+                        <option value="1">Playlist</option>
+                        <option value="2">Single song</option>
+                    </select>
+                </label>
+                
+                <a href="#" class="current-link">Link to current</a>
             </div>
 
             <div class="seek"></div>
@@ -73,6 +88,20 @@
             </div>
         </div>
         
+        <div id="authentication">
+            <h2>Authentication required</h2>
+            
+            <fieldset>
+                <label>
+                    <span class="name">User:</span>
+                    <input type="text" class="user" />
+                </label>
+                <label>
+                    <span class="name">Password:</span>
+                    <input type="text" class="password" />
+                </label>
+            </fieldset>
+        </div>
         <div id="album-browser" style="display: none;"></div>
         <div id="shader" style="display: none;"></div>
     </body>

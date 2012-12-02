@@ -4,16 +4,8 @@ musicd.Search = function(el, player) {
     this.el = $(el);
 
     this.player = player;
-    this.player.onAudioEnd.addListener(function() {
-        this._burkhaNavigate("next");
-    }.bind(this));
-    
-    $(".buttons .prev").on("click", function() {
-        this._burkhaNavigate("prev");
-    }.bind(this));
-    $(".buttons .next").on("click", function() {
-        this._burkhaNavigate("next");
-    }.bind(this));
+    this.player.onTrackChange.addListener(this._playerTrackChange.bind(this));
+    this.player.trackSource = this;
     
     this._search = this.el.find(".search input");
     this._search.val("").focus();
@@ -37,28 +29,34 @@ musicd.Search = function(el, player) {
 };
 
 musicd.Search.prototype = {
-    burkhaPlayFirst: function() {
-        var tr = $(".virtual-list tbody tr:first");
-        if (tr.length) {
-            var item = tr.data("item");
-            
-            this.player.setTrack(item);
-            
-            this._vlist.clearSelection();
-            this._vlist.setItemSelected(item.id, true);
+    getAdjacentTrack: function(id, delta, callback) {
+        var index = this._vlist.getItemIndex(id);
+        
+        if (index == -1) {
+            callback(null);
+            return;
         }
+        
+        this._vlist.getItemByIndex(index + delta, function(item) {
+            callback(item);
+        });
     },
     
-    _burkhaNavigate: function(dir) {
-        var tr = $(".virtual-list tr.selected")[dir]();
-        if (tr.length) {
-            var item = tr.data("item");
-            
-            this.player.setTrack(item);
-            
-            this._vlist.clearSelection();
-            this._vlist.setItemSelected(item.id, true);
-        }
+    getFirstTrack: function(callback) {
+        this._vlist.getItemByIndex(0, callback);
+    },
+    
+    playFirst: function() {
+        this.getFirstTrack(function(track) {
+            if (track) {
+                this.player.setTrack(track);
+                this.player.play();
+            }
+        }.bind(this));
+    },
+    
+    _playerTrackChange: function(track) {
+        this._vlist.setCurrentItem(track ? track.id : null);
     },
     
     _isValidSearch: function(text) {
@@ -71,6 +69,10 @@ musicd.Search.prototype = {
         this._search.val(text);
         this._lastSearch = text;
         this._vlist.refresh(callback);
+    },
+    
+    getSearch: function() {
+        return this._search.val();
     },
     
     _searchKeyUp: function() {
@@ -94,7 +96,7 @@ musicd.Search.prototype = {
             limit: limit
         };
         
-        // burqa, remove when parsing implemented on server side
+        // TODO: remove when parsing implemented on server side
         
         var m;
         if (m = text.match(/^albumid:(\d+)$/i))

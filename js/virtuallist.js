@@ -24,6 +24,7 @@ musicd.VirtualList = function(el, rowProvider, columns) {
     this._reqExtraItems = 100;
     this._drawExtraItems = 40;
     this._selectedIds = {};
+    this._currentId = null;
     this._setColumns(columns);
     this._itemHeight = this._headingRow.first().outerHeight();
     this._resize();
@@ -82,7 +83,7 @@ musicd.VirtualList.prototype = {
                 tr = $("<tr>");
             
             if (r) {
-                tr.data("item", r).data("id", r.id);;
+                tr.data("item", r).data("id", r.id);
                 
                 this._columns.forEach(function(col) {
                     var val = r[col.name];
@@ -102,6 +103,9 @@ musicd.VirtualList.prototype = {
                 
                 if (this._selectedIds[r.id])
                     tr.addClass("selected");
+                    
+                if (this._currentId === r.id)
+                    tr.addClass("current");
             } else {
                 tr.addClass("loading");
                 
@@ -136,6 +140,32 @@ musicd.VirtualList.prototype = {
         }.bind(this));
     },
     
+    setCurrentItem: function(id) {
+        this._currentId = id;
+        
+        this._draw();
+    },
+    
+    getItemIndex: function(id) {
+        if (!id)
+            return -1;
+        
+        return this._cache.getItemIndex(function(item) {
+            return item.id === id;
+        });
+    },
+    
+    getItemByIndex: function(index, callback) {
+        if (index < 0 || !this._cache.totalCount || index >= this._cache.totalCount) {
+            callback(null);
+            return;
+        }
+        
+        return this._cache.ensureItems(index, 1, function() {
+            callback(this._cache.items[index]);
+        }.bind(this));
+    },
+    
     scrollTo: function(index, callback) {
         this._rows.scrollTop(index * this._itemHeight);
         this.update(callback);
@@ -163,7 +193,7 @@ musicd.VirtualList.prototype = {
     },
     
     _resize: function() {
-        // burqa
+        // TODO: weird dependency
         
         this._rows.height($(window).height() - this._rows.offset().top - 10);
         
