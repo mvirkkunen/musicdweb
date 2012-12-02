@@ -5,14 +5,14 @@ musicd.VirtualList = function(el, rowProvider, columns) {
     this._cache = new ListCache($.throttle(500, rowProvider));
     
     this.el.addClass("virtual-list").append(
-        this._menuButton = $("<a>")
+        /*this._menuButton = $("<a>")
             .addClass("menu-button")
             .attr("href", "#")
             .click(function(e) {
                 e.preventDefault();
                 $(this).animate({ right: "+=80" }, 200);
             })
-            .text("▼"),
+            .text("▼"),*/
         this._headingTable = $("<table>").addClass("heading").append(
             $("<thead>").append(
                 this._headingRow = $("<tr>"))),

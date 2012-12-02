@@ -28,6 +28,18 @@ $.fn.animateNaturalHeight = function(speed) {
     });
 };
 
+musicd.stopPropagation = function(e) {
+    e.stopPropagation();
+};
+
+musicd.focusDefault = function() {
+    if (musicd.defaultFocusElement
+        && !musicd.defaultFocusElement.is(":focus"))
+    {
+        musicd.defaultFocusElement.focus();
+    }
+};
+
 Number.prototype.pad = function(length) {
     var s = "" + this;
     while (s.length < length)
@@ -129,6 +141,7 @@ musicd.authenticate = function(api) {
             user,
             dialog.find(".password").val(),
             function() {
+                dialog.off("click dblclick");
                 dialog.find("form").off("submit");
                 dialog.fadeOut();
                 musicd.shader.hide();
@@ -143,7 +156,8 @@ musicd.authenticate = function(api) {
     }
     
     musicd.shader.show();
-    
+        
+    dialog.on("click dblclick", musicd.stopPropagation);
     dialog.fadeIn()
     dialog.find(".error").hide();
     dialog.find("input[type=text]").eq(0).focus();
@@ -257,4 +271,6 @@ $(function() {
         
         location.reload();
     });
+    
+    $(document).on("click dblclick", musicd.focusDefault);
 });

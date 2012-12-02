@@ -9,6 +9,7 @@ musicd.Search = function(el, player) {
     
     this._search = this.el.find(".search input");
     this._search.val("").focus();
+    musicd.defaultFocusElement = this._search;
     this._lastSearch = "";
     
     this._totalResults = this.el.find(".total-results");
@@ -26,7 +27,9 @@ musicd.Search = function(el, player) {
         ]);
     
     this.el.on("click dblclick scroll", function() {
-        if (!this._search.is(":focus"));
+        musicd.defaultFocusElement = this._search;
+        
+        if (!this._search.is(":focus"))
             this._search.focus();
     }.bind(this));
     this._search.onmethod("keydown", null, this._vlist, "handleKeyEvent");

@@ -22,7 +22,7 @@ musicd.AlbumBrowser = function(el, search) {
             this._padder = $("<div>").addClass("padder").append(
                 this._ul = $("<ul>"))));
                 
-    this.el.on("click", function(e) { e.stopPropagation(); });
+    this.el.on("click dblclick", musicd.stopPropagation);
 
     this._container.on("scroll", this.update.bind(this));
     this._ul.onmethod("dblclick", "li", this, "_albumDblClick");
@@ -51,10 +51,16 @@ musicd.AlbumBrowser.prototype = {
         musicd.shader.show();
         this.update();
         
-        $(document).one("click", this.close.bind(this));
+        $(document).on("click.albumbrowser", this.close.bind(this));
+        $(document).on("keydown.albumbrowser", function(e) {
+            if (e.which == $.ui.keyCode.ESCAPE)
+                this.close();
+        }.bind(this));
     },
     
     close: function() {
+        $(document).off("click.albumbrowser keydown.albumbrowser");
+        
         this.el.fadeOut();
         musicd.shader.hide();
     },

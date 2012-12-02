@@ -121,6 +121,8 @@ musicd.Player.prototype = {
         var time = this._seekSlider.slider("value");
 
         this.seekTo(time);
+        
+        musicd.focusDefault();
     },
     
     _volSliderChange: function() {
