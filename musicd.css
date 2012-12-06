@@ -88,6 +88,28 @@ body {
     height: 45px;
 }
 
+.slider-time {
+    position: absolute;
+    bottom: 100%;
+    margin-bottom: 8px;
+    padding: 3px;
+    border-radius: 2px;
+    background: #000;
+    color: #FFF;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.slider-time div {
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    margin-left: -4px;
+    border-width: 4px 4px 0 4px;
+    border-style: solid;
+    border-color: #000 transparent transparent transparent;
+}
+
 #track-info {
     width: 300px;
     float: left;
@@ -228,7 +250,7 @@ body {
     border-right: 1px solid #DDD;
 }
 
-.virtual-list td:first-child {
+.virtual-list td:first-child, .virtual-list th:first-child {
     border-left: 1px solid transparent;
 }
 
@@ -244,9 +266,9 @@ body {
 }
 
 .virtual-list tr.current td {
-    background: #EEF ;
-    border-top: 1px solid #DDF;
-    border-bottom: 1px solid #DDF;
+    background: #DDF;
+    border-top: 1px solid #CCF;
+    border-bottom: 1px solid #CCF;
 }
 
 .virtual-list tr.highlighted td {
@@ -258,7 +280,7 @@ body {
     border-left: 1px dotted #888;
 }
 
-.virtual-list  table {
+.virtual-list table {
     width: 100%;
     border-spacing: 0;
     table-layout: fixed;
@@ -451,4 +473,8 @@ form .label {
 form .value {
     display: block;
     margin-left: 110px;
+}
+
+.ui-slider-range {
+    background: #DDF;
 }

@@ -1,5 +1,62 @@
 "use strict";
 
+$.widget("ui.timeslider", $.ui.slider, {
+    _create: function() {
+        this._superApply(arguments);
+        
+        this.element.append(this._tsTime =
+            $("<div>").addClass("slider-time")
+                .append($("<div>"))
+                .append(this._tsTimeText = $("<span>")).hide());
+        
+        this._tsMouseIn = false;
+        
+        this._on({
+            mousemove: this._tsMouseMove,
+            mouseenter: function() {
+                this._tsMouseIn = true;
+            },
+            mouseleave: function() {
+                this._tsMouseIn = false;
+                
+                if (!this._mouseSliding)
+                    this._tsTime.hide();
+            },
+        });
+    },
+    
+    _slide: function(e) {
+        this._superApply(arguments);
+        this._tsMouseMove(e);
+    },
+    
+    _stop: function() {
+        this._superApply(arguments);
+        if (!this._tsMouseIn)
+            this._tsTime.hide();
+    },
+    
+    _tsMouseMove: function(e) {
+        if (!this.elementSize) {
+            this.elementSize = {
+                width: this.element.outerWidth(),
+                height: this.element.outerHeight()
+            };
+            this.elementOffset = this.element.offset();
+        }
+        
+        var value = this._normValueFromMouse({x: e.pageX, y: e.pageY}),
+            valPercent = (value - this._valueMin())
+                / (this._valueMax() - this._valueMin()) * 100;
+        
+        this._tsTimeText.text(musicd.formatTime(value));
+        this._tsTime.css({
+            "marginLeft": -this._tsTime.outerWidth() / 2,
+            "left": e.pageX - this.elementOffset.left
+        }).show();
+    }
+});
+
 musicd.Player = function(el, trackInfo) {
     this.el = $(el);
     this._trackInfo = $(trackInfo);
@@ -30,8 +87,9 @@ musicd.Player = function(el, trackInfo) {
     this.el.onmethod("change", ".repeat", this, "_repeatChange", true);
     
     this._seekSliderMouseDown = false;
-    this._seekSlider = this.el.find(".seek").slider({
+    this._seekSlider = this.el.find(".seek").timeslider({
         animate: "fast",
+        range: "min",
         start: this._seekSliderStart.bind(this),
         stop: this._seekSliderStop.bind(this)
     });
@@ -90,7 +148,7 @@ musicd.Player.prototype = {
     
     _audioTimeUpdate: function() {
         if (!this._seekSliderMouseDown)
-            this._seekSlider.slider("option", "value", Math.floor(this.getCurrentTime()));
+            this._seekSlider.timeslider("option", "value", Math.floor(this.getCurrentTime()));
         
         this._updateCurrentTime();
     },
@@ -111,7 +169,7 @@ musicd.Player.prototype = {
     _seekSliderStop: function() {
         this._seekSliderMouseDown = false;
 
-        var time = this._seekSlider.slider("value");
+        var time = this._seekSlider.timeslider("value");
 
         this.seekTo(time);
         
@@ -124,13 +182,13 @@ musicd.Player.prototype = {
 
     _updateSeekable: function() {
         if (this.track) {
-            this._seekSlider.slider("option", {
+            this._seekSlider.timeslider("option", {
                 disabled: false,
                 min: 0,
                 max: Math.floor(this.track.duration)
             });
         } else {
-            this._seekSlider.slider("option", {
+            this._seekSlider.timeslider("option", {
                 disabled: true,
                 min: 0,
                 max: 0,
@@ -160,14 +218,14 @@ musicd.Player.prototype = {
         if (this.state == state)
             return;
 
-        if (state == musicd.Player.PLAYING) {
-            if (this.pendingSeek !== null) {
-                this.audio.pause();
-                this.audio.src = musicd.api.getTrackURL(this.track, this.pendingSeek);
-                this.pendingSeek = null;
-            }
-            
+        if (state == musicd.Player.PLAYING) {            
             if (this.track) {
+                if (this.pendingSeek !== null) {
+                    this.audio.pause();
+                    this.audio.src = musicd.api.getTrackURL(this.track, this.pendingSeek);
+                    this.pendingSeek = null;
+                }
+            
                 this.audio.play();
             } else {
                 this.playFirst();
@@ -350,7 +408,7 @@ musicd.Player.prototype = {
             this.audio.play();
         } else {
             this.pendingSeek = seconds;
-            this._seekSlider.slider("option", "value", seconds);
+            this._seekSlider.timeslider("option", "value", seconds);
         }
         
         this._updateCurrentTime();
