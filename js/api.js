@@ -9,23 +9,43 @@ musicd.APIClient = function(url, authCallback) {
     this.request = null;
 };
 
+function requestEquals(a, b) {
+    return (a.name === b.name
+        && a.method === b.method
+        && musicd.objectEquals(a.args, b.args));
+}
+
 musicd.APIClient.prototype = {
     call: function(name, method, args, success) {
+        if (args) {
+            var key;
+            for (key in args) {
+                if (args[key] === null)
+                    delete args[key];
+            }
+        }
+        
+        var r = {
+            name: name,
+            method: method,
+            args: args,
+            success: success
+        };    
+        
         if (name) {
-            if (this.request && this.requestName && this.requestName == name)
-                this.request.abort();
+            if (this.request && this.request.name === name) {
+                if (requestEquals(this.request, r))
+                    return;
+                
+                this.xhr.abort();
+            }
 
             this.queue = this.queue.filter(function(i) {
                 return !(i.name && i.name === name);
             });
         }
 
-        this.queue.push({
-            name: name,
-            method: method,
-            args: args,
-            success: success
-        });
+        this.queue.push(r);
 
         this._executeNext();
     },
@@ -51,8 +71,9 @@ musicd.APIClient.prototype = {
         
         if (window.console)
             console.log(r.method, JSON.stringify(r.args));
-
-        this.request = $.request({
+        
+        this.request = r;
+        this.xhr = $.request({
             type: "GET",
             url: this._urlPrefix + r.method,
             data: r.args,
@@ -60,7 +81,6 @@ musicd.APIClient.prototype = {
             success: this._requestSuccess.bind(this),
             error: this._requestError.bind(this)
         });
-        this.requestName = r.name;
     },
 
     _requestSuccess: function(res) {
@@ -69,14 +89,14 @@ musicd.APIClient.prototype = {
         r.success(res);
 
         this.request = null;
-        this.requestName = null;
+        this.xhr = null;
 
         this._executeNext();
     },
 
     _requestError: function(xhr) {
         this.request = null;
-        this.requestName = null;
+        this.xhr = null;
         
         if (xhr.status == 403) {
             this.authCallback(this);

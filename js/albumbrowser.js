@@ -29,11 +29,11 @@ musicd.AlbumBrowser = function(el, search) {
 };
 
 musicd.AlbumBrowser.prototype = {
-    _itemProvider: function(offset, limit, callback) {
+    _itemProvider: function(offset, limit, reqTotal, callback) {
         musicd.api.call(
-            (offset == 0 ? null : "AlbumBrowser.albums"), // ensures first search is not aborted
+            "AlbumBrowser.albums",
             "albums",
-            { limit: limit, offset: offset, total: (offset == 0) ? 1 : null },
+            { limit: limit, offset: offset, total: reqTotal ? 1 : null },
             function(res) {
                 callback((offset == 0 ? (res.total || 0) : null), res.albums);
             }.bind(this)

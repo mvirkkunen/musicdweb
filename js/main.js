@@ -3,6 +3,10 @@
 window.musicd = {};
 
 $.request = $["\x61\x6a\x61\x78"]; // avoid the a-word
+$["\x61\x6a\x61\x78Setup"]({
+   xhrFields: { withCredentials: true},
+   crossDomain: true
+});
 
 $.fn.onmethod = function(type, selector, object, method, preventDefault) {
     return this.on(type, selector, function(e) {
@@ -73,6 +77,24 @@ musicd.parseQueryString = function(qs) {
     });
     
     return r;
+};
+
+musicd.objectEquals = function(a, b) {
+    if (!!a != !!b)
+        return false;
+        
+    var key;
+    for (key in a) {
+        if (a[key] !== b[key])
+            return false;
+    }
+    
+    for (key in b) {
+        if (a[key] !== b[key])
+            return false;
+    }
+    
+    return true;
 };
 
 musicd.Event = function Event() {

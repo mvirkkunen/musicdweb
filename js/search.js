@@ -91,7 +91,7 @@ musicd.Search.prototype = {
         }
     },
     
-    _itemProvider: function(offset, limit, callback) {
+    _itemProvider: function(offset, limit, reqTotal, callback) {
         var text = this._search.val();
         
         musicd.session.setItem("Search.text", text);
@@ -99,7 +99,8 @@ musicd.Search.prototype = {
         var args = {
             sort: "album,track,title",
             offset: offset,
-            limit: limit
+            limit: limit,
+            total: reqTotal ? 1 : null
         };
         
         // TODO: remove when parsing implemented on server side
@@ -110,12 +111,8 @@ musicd.Search.prototype = {
         else
             args.search = text;
 
-        if (offset == 0)
-            args.total = 1;
-
         musicd.api.call(
-            //null,
-            (offset == 0 ? null : "Search.tracks"), // ensures first search is not aborted
+            "Search.tracks",
             "tracks",
             args,
             function(res) {
@@ -132,8 +129,5 @@ musicd.Search.prototype = {
         
         this._vlist.clearSelection();
         this._vlist.setItemSelected(track.id, true);
-        
-        //this.context.session.setItem("Search.currentTrackIndex", 
-        //this.context.session.setItem("Search.currentTrack",
     }
 };
