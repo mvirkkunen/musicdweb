@@ -2,6 +2,11 @@
 
 window.musicd = {};
 
+musicd.log = function() {
+    if (console.log)
+        console.log.apply(console, arguments);
+};
+
 $.request = $["\x61\x6a\x61\x78"]; // avoid the a-word
 $["\x61\x6a\x61\x78Setup"]({
    xhrFields: { withCredentials: true},
@@ -30,6 +35,47 @@ $.fn.animateNaturalHeight = function(speed) {
         
         $(this).height(currentHeight).animate({ height: naturalHeight }, speed);
     });
+};
+
+var templateCache = {};
+
+function collectIdElements(el, map) {
+    var id = el.getAttribute("id") || el.getAttribute("data-id"), child;
+    if (id)
+        map[id] = $(el);
+    
+    for (child = el.firstChild; child; child = child.nextSibling) {
+        if (child.nodeType == Node.ELEMENT_NODE)
+            collectIdElements(child, map);
+    }
+}
+
+$.fn.elementMap = function(id) {
+    var map = {};
+    
+    this.each(function() {
+        collectIdElements(this, map);
+    });
+    
+    return map;
+};
+
+$.template = function(id) {
+    var el;
+    
+    if (!templateCache[id]) {
+        el = $("#" + id);
+        if (!el.length)
+            throw new Error("Template '" + id + "' not found");
+        
+        templateCache[id] = el.html();
+    }
+    
+    return $("<div>").html(templateCache[id]).find(">*");
+};
+
+$.fn.render = function(id) {
+    return this.append($.template(id));
 };
 
 musicd.stopPropagation = function(e) {
@@ -201,7 +247,7 @@ $(function() {
     if (reasons.length)
         $("#invalid-browser").show().find(".reason").text(reasons.join(", "));
     
-    musicd.api = new musicd.APIClient("/", musicd.authenticate);
+    musicd.api = new musicd.APIClient("http://lumpio.dy.fi:1337/", musicd.authenticate);
     musicd.session = new musicd.Session();    
     
     var player = new musicd.Player("#player", "#track-info");

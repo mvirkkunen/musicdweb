@@ -1,31 +1,26 @@
 "use strict";
 
 musicd.AlbumBrowser = function(el, search) {
-    this.el = $(el);
+    this._el = $(el).render("albumbrowser");
+    this._ui = this._el.elementMap();
+    
     this._search = search;
-    this._shader = $("#shader");
     this._size = 200 + 20;
     this._rowSize = 5;
     this._images = {};
     
     this._allowHover = $.debounce(200, function() {
-        this.el.addClass("allow-hover");
+        this._el.addClass("allow-hover");
     }.bind(this));
     
     this._cache = new ListCache(
         $.throttle(500, this._itemProvider.bind(this)),
-        this._rowSize,
-        10);
-    
-    this.el.append(
-        this._container = $("<div>").addClass("container").append(
-            this._padder = $("<div>").addClass("padder").append(
-                this._ul = $("<ul>"))));
+        this._rowSize * 10);
                 
-    this.el.on("click dblclick", musicd.stopPropagation);
+    this._el.on("click dblclick", musicd.stopPropagation);
 
-    this._container.on("scroll", this.update.bind(this));
-    this._ul.onmethod("dblclick", "li", this, "_albumDblClick");
+    this._ui.container.on("scroll", this.update.bind(this));
+    this._ui.ul.onmethod("dblclick", "li", this, "_albumDblClick");
 };
 
 musicd.AlbumBrowser.prototype = {
@@ -47,7 +42,7 @@ musicd.AlbumBrowser.prototype = {
     },
     
     open: function() {
-        this.el.fadeIn();
+        this._el.fadeIn();
         musicd.shader.show();
         this.update();
         
@@ -61,16 +56,16 @@ musicd.AlbumBrowser.prototype = {
     close: function() {
         $(document).off("click.albumbrowser keydown.albumbrowser");
         
-        this.el.fadeOut();
+        this._el.fadeOut();
         musicd.shader.hide();
     },
     
     update: function() {
-        var visOffset = Math.floor(this._container.scrollTop() / this._size),
-            visLimit = (Math.ceil(this._container.height() / this._size) + 1),
+        var visOffset = Math.floor(this._ui.container.scrollTop() / this._size),
+            visLimit = (Math.ceil(this._ui.container.height() / this._size) + 1),
             completed = false;
         
-        this.el.removeClass("allow-hover");
+        this._el.removeClass("allow-hover");
         this._allowHover();
         
         this._cache.ensureItems(
@@ -91,14 +86,14 @@ musicd.AlbumBrowser.prototype = {
         // delicious copypasta
         
         var totalRows = Math.ceil((this._cache.totalCount || 0) / this._rowSize),
-            visOffset = Math.floor(this._container.scrollTop() / this._size),
-            visLimit = (Math.ceil(this._container.height() / this._size) + 1),
+            visOffset = Math.floor(this._ui.container.scrollTop() / this._size),
+            visLimit = (Math.ceil(this._ui.container.height() / this._size) + 1),
             offset = Math.max(0, visOffset),
             limit = Math.min(visLimit, totalRows);
                     
-        this._ul.empty().css("top", offset * this._size);
+        this._ui.ul.empty().css("top", offset * this._size);
     
-        this._padder.height(this._size * totalRows);
+        this._ui.padder.height(this._size * totalRows);
         
         for (var i = offset * this._rowSize, e = (offset + limit) * this._rowSize;
              i < e;
@@ -134,7 +129,7 @@ musicd.AlbumBrowser.prototype = {
                 li.append($("<div>").addClass("info").text(album.album || "Untitled album"));
             }
             
-            this._ul.append(li);
+            this._ui.ul.append(li);
         }
     },
     

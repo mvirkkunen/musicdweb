@@ -58,7 +58,8 @@ $.widget("ui.timeslider", $.ui.slider, {
 });
 
 musicd.Player = function(el, trackInfo) {
-    this.el = $(el);
+    this._el = $(el);
+    this._ui = this._el.elementMap();
     this._trackInfo = $(trackInfo);
     this._albumArt = this._trackInfo.find(".album-art");
     
@@ -79,21 +80,22 @@ musicd.Player = function(el, trackInfo) {
     this.pendingSeek = null;
 
     this.state = musicd.Player.STOPPED;
-
-    this.el.onmethod("click", ".toggle-play", this, "togglePlay", true);
-    this.el.onmethod("click", ".stop", this, "stop", true);
-    this.el.onmethod("click", ".prev", this, "rewindOrPrev", true);
-    this.el.onmethod("click", ".next", this, "next", true);
-    this.el.onmethod("change", ".repeat", this, "_repeatChange", true);
+    
+    this._el.on("click dblclick", musicd.focusDefault);
+    this._el.onmethod("click", ".toggle-play", this, "togglePlay", true);
+    this._el.onmethod("click", ".stop", this, "stop", true);
+    this._el.onmethod("click", ".prev", this, "rewindOrPrev", true);
+    this._el.onmethod("click", ".next", this, "next", true);
+    this._el.onmethod("change", ".repeat", this, "_repeatChange", true);
     
     this._seekSliderMouseDown = false;
-    this._seekSlider = this.el.find(".seek").timeslider({
+    this._ui.seek.timeslider({
         animate: "fast",
         range: "min",
         start: this._seekSliderStart.bind(this),
         stop: this._seekSliderStop.bind(this)
     });
-    this._volSlider = this.el.find(".volume").slider({
+    this._ui.volume.slider({
         orientation: "vertical",
         min: 0,
         max: 100,
@@ -101,7 +103,6 @@ musicd.Player = function(el, trackInfo) {
         slide: this._volSliderChange.bind(this),
         stop: this._volSliderChange.bind(this)
     });
-    this._currentTime = this.el.find(".current-time");
     
     this.stop();
     this._updateSeekable();
@@ -114,8 +115,6 @@ musicd.Player = function(el, trackInfo) {
         if (this.audio.currentTime > 315360000) // 10 years
             this._audioEnded();
     }.bind(this), 1000);
-    
-    this.el.on("click dblclick", musicd.focusDefault);
 };
 
 $.extend(musicd.Player, {
@@ -148,7 +147,7 @@ musicd.Player.prototype = {
     
     _audioTimeUpdate: function() {
         if (!this._seekSliderMouseDown)
-            this._seekSlider.timeslider("option", "value", Math.floor(this.getCurrentTime()));
+            this._ui.seek.timeslider("option", "value", Math.floor(this.getCurrentTime()));
         
         this._updateCurrentTime();
     },
@@ -169,7 +168,7 @@ musicd.Player.prototype = {
     _seekSliderStop: function() {
         this._seekSliderMouseDown = false;
 
-        var time = this._seekSlider.timeslider("value");
+        var time = this._ui.seek.timeslider("value");
 
         this.seekTo(time);
         
@@ -177,18 +176,18 @@ musicd.Player.prototype = {
     },
     
     _volSliderChange: function() {
-        this.audio.volume = this._volSlider.slider("value") / 100;
+        this.audio.volume = this._ui.volume.slider("value") / 100;
     },
 
     _updateSeekable: function() {
         if (this.track) {
-            this._seekSlider.timeslider("option", {
+            this._ui.seek.timeslider("option", {
                 disabled: false,
                 min: 0,
                 max: Math.floor(this.track.duration)
             });
         } else {
-            this._seekSlider.timeslider("option", {
+            this._ui.seek.timeslider("option", {
                 disabled: true,
                 min: 0,
                 max: 0,
@@ -206,7 +205,7 @@ musicd.Player.prototype = {
     
     _updateCurrentTime: function() {
         if (this.track) {
-            this._currentTime.text(
+            this._ui.currentTime.text(
                 musicd.formatTime(this.getCurrentTime(), this.track.duration) + " / " +
                 musicd.formatTime(this.track.duration));
             
@@ -241,7 +240,7 @@ musicd.Player.prototype = {
         if (state == musicd.Player.STOPPED)
             this.seekTo(0);
 
-        this.el.find(".toggle-play")
+        this._ui.togglePlay
             .toggleClass("pause", this.state == musicd.Player.PLAYING)
             .text(this.state == musicd.Player.PLAYING ? "▮▮" : "▶");
 
@@ -408,7 +407,7 @@ musicd.Player.prototype = {
             this.audio.play();
         } else {
             this.pendingSeek = seconds;
-            this._seekSlider.timeslider("option", "value", seconds);
+            this._ui.seek.timeslider("option", "value", seconds);
         }
         
         this._updateCurrentTime();

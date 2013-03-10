@@ -69,8 +69,7 @@ musicd.APIClient.prototype = {
         
         var r = this.queue[0];
         
-        if (window.console)
-            console.log(r.method, JSON.stringify(r.args));
+        musicd.log(r.method, JSON.stringify(r.args));
         
         this.request = r;
         this.xhr = $.request({

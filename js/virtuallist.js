@@ -1,34 +1,18 @@
 "use strict";
 
 musicd.VirtualList = function(el, rowProvider, columns) {
-    this.el = $(el);
-    this._cache = new ListCache($.throttle(500, rowProvider));
+    this._el = $(el).addClass("virtual-list").render("virtuallist");
+    this._ui = this._el.elementMap();
     
-    this.el.addClass("virtual-list").append(
-        /*this._menuButton = $("<a>")
-            .addClass("menu-button")
-            .attr("href", "#")
-            .click(function(e) {
-                e.preventDefault();
-                $(this).animate({ right: "+=80" }, 200);
-            })
-            .text("▼"),*/
-        this._headingTable = $("<table>").addClass("heading").append(
-            $("<thead>").append(
-                this._headingRow = $("<tr>"))),
-        this._rows = $("<div>").addClass("rows").append(
-            this._padder = $("<div>").addClass("padder").append(
-                this._table = $("<table>").append(
-                    this._tbody = $("<tbody>")))));
+    this._cache = new ListCache($.throttle(500, rowProvider));
                 
-    this._reqExtraItems = 100;
     this._drawExtraItems = 40;
     this._drawnPos = null;
     this._selectedIds = {};
     this._currentId = null;
     this._highlightedIndex = null;
     this._setColumns(columns);
-    this._itemHeight = this._headingRow.first().outerHeight();
+    this._itemHeight = this._ui.headingRow.first().outerHeight();
     this._resize();
     
     this.onItemActivate = new musicd.Event();
@@ -37,13 +21,13 @@ musicd.VirtualList = function(el, rowProvider, columns) {
         this._rowHighlightInhibited = false;
     }.bind(this));
     
-    this._rows.on("scroll", $.debounce(100, function() { this.update(); }.bind(this)));
+    this._ui.rows.on("scroll", $.debounce(100, function() { this.update(); }.bind(this)));
     
     // TODO: This is just to test phone compatibility
     var isAndroid = !!navigator.userAgent.match(/android/i);
     
-    this._tbody.onmethod("mouseover", "tr", this, "_rowHighlight");
-    this._tbody.onmethod(isAndroid ? "click" : "dblclick", "td", this, "_rowDblclick");
+    this._ui.tbody.onmethod("mouseover", "tr", this, "_rowHighlight");
+    this._ui.tbody.onmethod(isAndroid ? "click" : "dblclick", "td", this, "_rowDblclick");
     $(window).onmethod("resize", null, this, "_resize");
 };
 
@@ -54,9 +38,9 @@ musicd.VirtualList.prototype = {
     },
     
     update: function(callback) {
-        var exactFirst = Math.floor(this._rows.scrollTop() / this._itemHeight),
+        var exactFirst = Math.floor(this._ui.rows.scrollTop() / this._itemHeight),
             visOffset = Math.floor(exactFirst / 2) * 2,
-            visLimit = Math.ceil(this._rows.height() / this._itemHeight) + 1,
+            visLimit = Math.ceil(this._ui.rows.height() / this._itemHeight) + 1,
             completed = false,
             force = false;
         
@@ -97,7 +81,7 @@ musicd.VirtualList.prototype = {
         if (this._cache.cleared)
             return;
         
-        var pos = this._rows.scrollTop();
+        var pos = this._ui.rows.scrollTop();
     
         if (!force && this._drawnPos !== null && Math.abs(this._drawnPos - pos) < 50)
             return;
@@ -106,16 +90,16 @@ musicd.VirtualList.prototype = {
         
         this._inhibitRowHighlight();
         
-        var exactFirst = Math.floor(this._rows.scrollTop() / this._itemHeight),
+        var exactFirst = Math.floor(this._ui.rows.scrollTop() / this._itemHeight),
             visOffset = Math.floor(exactFirst / 2) * 2,
-            visLimit = Math.ceil(this._rows.height() / this._itemHeight) + 1,
+            visLimit = Math.ceil(this._ui.rows.height() / this._itemHeight) + 1,
             offset = Math.max(0, visOffset - this._drawExtraItems),
             limit = Math.min(visLimit + this._drawExtraItems*2, this._cache.totalCount || 0);
                     
-        this._tbody.empty();
-        this._table.css("top", offset * this._itemHeight);
+        this._ui.tbody.empty();
+        this._ui.table.css("top", offset * this._itemHeight);
     
-        this._padder.height(this._itemHeight * (this._cache.totalCount || 0));
+        this._ui.padder.height(this._itemHeight * (this._cache.totalCount || 0));
         
         for (var i = offset; i < offset + limit; i++) {
             var r = this._cache.items[i],
@@ -156,14 +140,14 @@ musicd.VirtualList.prototype = {
             if (i == this._highlightedIndex)
                 tr.addClass("highlighted");
             
-            this._tbody.append(tr)
+            this._ui.tbody.append(tr)
         }
     },
     
     clearSelection: function() {
         this._selectedIds = {};
         
-        this._tbody.children().removeClass("selected");
+        this._ui.tbody.children().removeClass("selected");
     },
     
     setItemSelected: function(id, selected) {
@@ -172,7 +156,7 @@ musicd.VirtualList.prototype = {
         else
             delete this._selectedIds[id];
         
-        this._tbody.children().each(function(index, tr) {
+        this._ui.tbody.children().each(function(index, tr) {
             tr = $(tr);
             
             if (tr.data("id") == id) {
@@ -188,7 +172,7 @@ musicd.VirtualList.prototype = {
         
         this._currentId = id;
         
-        this._tbody.children().removeClass("current").filter(function() {
+        this._ui.tbody.children().removeClass("current").filter(function() {
             return $(this).data("id") === id;
         }).addClass("current");
     },
@@ -197,7 +181,7 @@ musicd.VirtualList.prototype = {
         this._inhibitRowHighlight();
         this.setHighlightedIndex(this._highlightedIndex != null
             ? this._highlightedIndex + delta
-            : Math.ceil(this._rows.scrollTop() / this._itemHeight));
+            : Math.ceil(this._ui.rows.scrollTop() / this._itemHeight));
     },
     
     setHighlightedIndex: function(index) {
@@ -206,8 +190,8 @@ musicd.VirtualList.prototype = {
         
         this._highlightedIndex = index = Math.max(0, Math.min(index, this._cache.totalCount || 0));
         
-        var scrollTop = this._rows.scrollTop(),
-            scrollHeight = this._rows.height();
+        var scrollTop = this._ui.rows.scrollTop(),
+            scrollHeight = this._ui.rows.height();
         
         if ((this._highlightedIndex + 1) * this._itemHeight > scrollTop + scrollHeight)
             scrollTop = (this._highlightedIndex + 1) * this._itemHeight - scrollHeight;
@@ -215,9 +199,9 @@ musicd.VirtualList.prototype = {
         if (this._highlightedIndex * this._itemHeight < scrollTop)
             scrollTop = this._highlightedIndex * this._itemHeight;
         
-        this._rows.scrollTop(scrollTop).trigger("scroll")
+        this._ui.rows.scrollTop(scrollTop).trigger("scroll")
         
-        this._tbody.children().removeClass("highlighted").filter(function() {
+        this._ui.tbody.children().removeClass("highlighted").filter(function() {
             return $(this).data("index") === index;
         }).addClass("highlighted");
     },
@@ -243,7 +227,7 @@ musicd.VirtualList.prototype = {
     },
     
     scrollTo: function(index, callback) {
-        this._rows.scrollTop(index * this._itemHeight);
+        this._ui.rows.scrollTop(index * this._itemHeight);
         this.update(callback);
     },
 
@@ -257,10 +241,10 @@ musicd.VirtualList.prototype = {
     _setColumns: function(columns) {
         this._columns = columns;
         
-        this._headingRow.empty();
+        this._ui.headingRow.empty();
         
         columns.forEach(function(col) {
-            this._headingRow.append($("<th>").addClass(col.name).text(col.title));
+            this._ui.headingRow.append($("<th>").addClass(col.name).text(col.title));
         }, this);
     },
     
@@ -283,9 +267,9 @@ musicd.VirtualList.prototype = {
     _resize: function() {
         // TODO: remove weird dependency
         
-        this._rows.height($(window).height() - this._rows.offset().top - 10);
+        this._ui.rows.height($(window).height() - this._ui.rows.offset().top - 10);
         
-        this._headingTable.width(this._rows[0].clientWidth);
+        this._ui.headingTable.width(this._ui.rows[0].clientWidth);
         this.update();
     }
 };

@@ -28,13 +28,13 @@
             </div>
         
             <div class="buttons">
-                <button class="toggle-play" accesskey="p" title="Play/pause (p)">▶</button>
+                <button class="toggle-play" data-id="togglePlay" accesskey="p" title="Play/pause (p)">▶</button>
                 <button class="stop" accesskey="s" title="Stop (s)">■</button>
                 <button class="prev" accesskey="b" title="Previous (b)">◀◀</button>
                 <button class="next" accesskey="n" title="Next (n)">▶▶</button>
                 <button class="albums" accesskey="a" title="Album browser (a)">▞▞</button>
                 
-                <span class="current-time">--:-- / --:--</span>
+                <span class="current-time" data-id="currentTime">--:-- / --:--</span>
                 
                 <label>
                     Repeat: 
@@ -48,8 +48,8 @@
                 <a href="#" class="current-link">Link to current</a>
             </div>
 
-            <div class="seek"></div>
-            <div class="volume"></div>
+            <div class="seek" data-id="seek"></div>
+            <div class="volume" data-id="volume"></div>
         </div>
         
         <div id="track-info">
@@ -117,5 +117,28 @@
         
         <div id="album-browser" style="display: none;"></div>
         <div id="shader" style="display: none;"></div>
+        
+        <script id="virtuallist" type="text/html">
+            <table class="heading" data-id="headingTable">
+                <thead>
+                    <tr data-id="headingRow"></tr>
+                </thead>
+            </table>
+            <div class="rows" data-id="rows">
+                <div class="padder" data-id="padder">
+                    <table data-id="table">
+                        <tbody data-id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </script>
+        
+        <script id="albumbrowser" type="text/html">
+            <div class="container" data-id="container">
+                <div class="padder" data-id="padder">
+                    <ul data-id="ul"></ul>
+                </div>
+            </div>
+        </script>
     </body>
 </html>
