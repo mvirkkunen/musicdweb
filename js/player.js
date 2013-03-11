@@ -61,7 +61,9 @@ musicd.Player = function(el, trackInfo) {
     this._el = $(el);
     this._ui = this._el.elementMap();
     this._trackInfo = $(trackInfo);
-    this._albumArt = this._trackInfo.find(".album-art");
+    this._trackInfoUi = this._trackInfo.elementMap();
+    
+    //this._albumArt = this._trackInfo.find(".album-art");
     
     this.audio = new Audio();
     window.debugaudio = this.audio;
@@ -99,10 +101,25 @@ musicd.Player = function(el, trackInfo) {
         orientation: "vertical",
         min: 0,
         max: 100,
-        value: 100,
+        value: Math.floor(musicd.settings.get("Player.volume", 1.0) * 100),
         slide: this._volSliderChange.bind(this),
         stop: this._volSliderChange.bind(this)
     });
+    this._volSliderChange();
+    
+    this._trackInfoUi.details.toggle(musicd.settings.get("Player.trackDetailsVisible", true));
+    this._trackInfoUi.toggleDetails.click(function(e) {
+        e.preventDefault();
+        
+        var visible = !this._trackInfoUi.details.is(":visible");
+        
+        this._trackInfoUi.details.stop();
+        musicd.settings.set("Player.trackDetailsVisible", visible);
+        this._trackInfoUi.details.slideToggle();
+        
+        if (visible && this.track)
+            this.loadAlbumInfo(this.track);
+    }.bind(this));
     
     this.stop();
     this._updateSeekable();
@@ -176,7 +193,10 @@ musicd.Player.prototype = {
     },
     
     _volSliderChange: function() {
-        this.audio.volume = this._ui.volume.slider("value") / 100;
+        var volume = this._ui.volume.slider("value") / 100;
+        
+        this.audio.volume = volume;
+        musicd.settings.set("Player.volume", volume);
     },
 
     _updateSeekable: function() {
@@ -208,8 +228,6 @@ musicd.Player.prototype = {
             this._ui.currentTime.text(
                 musicd.formatTime(this.getCurrentTime(), this.track.duration) + " / " +
                 musicd.formatTime(this.track.duration));
-            
-            musicd.session.setItem("Player.currentTime", this.getCurrentTime());
         }
     },
 
@@ -258,11 +276,11 @@ musicd.Player.prototype = {
         this.currentStart = 0;
         this.audio.src = musicd.api.getTrackURL(track);
         
-        this._trackInfo.find(".titles").pinHeight();
-        this._trackInfo.find(".track-name").toggle(!!track.title).find("span").text(track.title);
-        this._trackInfo.find(".album").toggle(!!track.album).find("span").text(track.album);
-        this._trackInfo.find(".artist").toggle(!!track.artist).find("span").text(track.artist);
-        this._trackInfo.find(".titles").animateNaturalHeight(400);
+        this._trackInfoUi.titles.pinHeight();
+        this._trackInfoUi.trackName.toggle(!!track.title).find("span").text(track.title);
+        this._trackInfoUi.album.toggle(!!track.album).find("span").text(track.album);
+        this._trackInfoUi.artist.toggle(!!track.artist).find("span").text(track.artist);
+        this._trackInfoUi.titles.animateNaturalHeight(400);
         
         var names = [track.title, track.album, track.artist, "musicd"], title = "";
         names.forEach(function(n) {
@@ -292,23 +310,23 @@ musicd.Player.prototype = {
         
         function unknown() {
             if (this.track && this.track.albumid === loadAlbumId) {
-                this._albumArt.queue(function(next) {
-                    this._albumArt.empty();
+                this._trackInfoUi.albumArt.queue(function(next) {
+                    this._trackInfoUi.albumArt.empty();
                     
                     var div = musicd.Player.createDummyAlbumArt(track);
                 
-                    div.css("opacity", 0).appendTo(this._albumArt).animate({opacity: 1}, 400);
+                    div.css("opacity", 0).appendTo(this._trackInfoUi.albumArt).animate({opacity: 1}, 400);
                     
-                    this._albumArt.animate({ height: div.outerHeight() }, 400);
+                    this._trackInfoUi.albumArt.animate({ height: div.outerHeight() }, 400);
                     
                     next();
                 }.bind(this));
             }
         }
         
-        if (this._albumArt.children().length) {
-            this._albumArt.stop(true, true).queue(function(next) {
-                this._albumArt.children().animate({opacity: 0}, 400, next);
+        if (this._trackInfoUi.albumArt.children().length) {
+            this._trackInfoUi.albumArt.stop(true, true).queue(function(next) {
+                this._trackInfoUi.albumArt.children().animate({opacity: 0}, 400, next);
             }.bind(this));
         }
         
@@ -318,12 +336,12 @@ musicd.Player.prototype = {
             
             img.one("load", function() {
                 if (this.track && this.track.albumid === loadAlbumId) {
-                    this._albumArt.queue(function(next) {
-                        this._albumArt.empty();
+                    this._trackInfoUi.albumArt.queue(function(next) {
+                        this._trackInfoUi.albumArt.empty();
                         
-                        img.css("opacity", 0).appendTo(this._albumArt).animate({opacity: 1}, 400);
+                        img.css("opacity", 0).appendTo(this._trackInfoUi.albumArt).animate({opacity: 1}, 400);
                         
-                        this._albumArt.animate({ height: img.outerHeight() }, 400);
+                        this._trackInfoUi.albumArt.animate({ height: img.outerHeight() }, 400);
                        
                         next();
                     }.bind(this));

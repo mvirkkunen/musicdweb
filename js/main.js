@@ -40,10 +40,24 @@ $.fn.animateNaturalHeight = function(speed) {
 var templateCache = {};
 
 function collectIdElements(el, map) {
-    var id = el.getAttribute("id") || el.getAttribute("data-id"), child;
+    var id = el.getAttribute("id") || el.getAttribute("data-id");
+    
+    if (!id) {
+        var className = el.className;
+        if (className) {
+            var classBasedId = className.split(/ /)[0]
+                .replace(/-([a-z])/g, function(m) { return m[1].toUpperCase(); })
+            
+            // Do not overwrite anything with class-based IDs
+            if (!map[classBasedId])
+                id = classBasedId;
+        }
+    }
+    
     if (id)
         map[id] = $(el);
     
+    var child;
     for (child = el.firstChild; child; child = child.nextSibling) {
         if (child.nodeType == Node.ELEMENT_NODE)
             collectIdElements(child, map);
@@ -177,22 +191,6 @@ musicd.shader = {
     }
 };
 
-musicd.Session = function Session() {
-    
-}
-
-musicd.Session.prototype = {
-    getItem: function(key, defaultValue) {
-        var val = localStorage.getItem(key);
-        
-        return (val !== undefined) ? val : defaultValue;
-    },
-    
-    setItem: function(key, value) {
-        localStorage.setItem(key, value);
-    }
-};
-
 musicd.authenticate = function(api) {
     var dialog = $("#authentication");
     if (dialog.is(":visible"))
@@ -235,7 +233,7 @@ musicd.authenticate = function(api) {
 $(function() {
     var reasons = [];
 
-    if (!Array.prototype.forEach)
+    if (!(Array.prototype.forEach && window.JSON && window.localStorage))
         reasons.push("your browser doesn't seem to support modern JavaScript! Shame on you!");
     
     if (!window.Audio)
@@ -248,23 +246,10 @@ $(function() {
         $("#invalid-browser").show().find(".reason").text(reasons.join(", "));
     
     musicd.api = new musicd.APIClient("http://lumpio.dy.fi:1337/", musicd.authenticate);
-    musicd.session = new musicd.Session();    
     
     var player = new musicd.Player("#player", "#track-info");
     
     var search = new musicd.Search("#search", player);
-    
-    player.onStateChange.addListener(function(state) {
-        window.postMessage({
-            type: "STATE_CHANGE",
-            text: state == musicd.Player.PLAYING ? "play" : "pause"
-        }, "*");
-    });
-    
-    window.addEventListener("message", function(e) {
-        if (e.data.type == "TOGGLE_PLAY")
-            player.togglePlay();
-    });
     
     var albumBrowser = new musicd.AlbumBrowser("#album-browser", search);
     
@@ -272,9 +257,6 @@ $(function() {
         e.stopPropagation();
         albumBrowser.open();
     });
-    
-    if (location.href.match(/[?&]albums\b/))
-        albumBrowser.open();
     
     var m = location.href.match(/#(.+)$/);
     if (m) {
@@ -305,6 +287,32 @@ $(function() {
         }
     }
     
+    $("#server-status .log-out").click(function(e) {
+        e.preventDefault();
+        
+        document.cookie = "user=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
+        document.cookie = "password=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
+        
+        location.reload();
+    });
+    
+    // Below this line there be temporary hacks - beware!
+    
+    if (location.href.match(/[?&]albums\b/))
+        albumBrowser.open();
+    
+    player.onStateChange.addListener(function(state) {
+        window.postMessage({
+            type: "STATE_CHANGE",
+            text: state == musicd.Player.PLAYING ? "play" : "pause"
+        }, "*");
+    });
+    
+    window.addEventListener("message", function(e) {
+        if (e.data.type == "TOGGLE_PLAY")
+            player.togglePlay();
+    });
+    
     $(".current-link").click(function(e) {
         e.preventDefault();
         
@@ -329,14 +337,5 @@ $(function() {
     $(".album-art").dblclick(function(e) {
         if (player.track)
             search.setSearch("albumid:" + player.track.albumid);
-    });
-    
-    $("#server-status .log-out").click(function(e) {
-        e.preventDefault();
-        
-        document.cookie = "user=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
-        document.cookie = "password=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
-        
-        location.reload();
     });
 });

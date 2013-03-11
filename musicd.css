@@ -131,14 +131,22 @@ body {
     font-weight: bold;
 }
 
+#track-info .toggle-details {
+    display: block;
+    color: #888;
+    text-decoration: none;
+    margin: 10px 0;
+    font-size: 0.9em;
+}
+
+#track-info .details {
+    border-bottom: 1px solid #CCC;
+    padding-bottom: 10px;
+}
+
 #track-info .album-art {
     width: 300px;
-    /*height: 300px;*/
-    /*min-height: 100px;*/
-    /*display: table-cell;*/
     text-align: center;
-    /*vertical-align: middle;*/
-    margin: 20px 0;
     overflow: hidden;
 }
 

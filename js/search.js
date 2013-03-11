@@ -93,8 +93,6 @@ musicd.Search.prototype = {
     
     _itemProvider: function(offset, limit, reqTotal, callback) {
         var text = this._search.val();
-        
-        musicd.session.setItem("Search.text", text);
 
         var args = {
             sort: "album,track,title",

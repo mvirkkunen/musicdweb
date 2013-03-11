@@ -11,6 +11,7 @@
         <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
         <script src="js/main.js"></script>
         <script src="js/api.js"></script>
+        <script src="js/settings.js"></script>
         <script src="js/listcache.js"></script>
         <script src="js/virtuallist.js"></script>
         <script src="js/player.js"></script>
@@ -55,17 +56,21 @@
         <div id="track-info">
             <div class="titles">
                 <div class="titles-container">
-                    <h2 class="track-name" style="display: none;"><span></span></h2>
+                    <h2 class="track-name"><span>(no track)</span></h2>
                     <h2 class="artist" style="display: none;">by <span></span></h2>
                     <h2 class="album" style="display: none;">on <span></span></h2>
                 </div>
             </div>
-            <div class="album-art">
-                <div class="dummy-album-art"></div>
+            <p>
+                <a href="#" class="toggle-details">Toggle details</a>
+            </p>
+            <div class="details">
+                <div class="album-art">
+                    <div class="dummy-album-art"></div>
+                </div>
+                
+                <!--<p>Lyrics...</p>-->
             </div>
-            <!--<p>Lyrics...</p>-->
-            
-            <div id="debug"></div>
         </div>
         
         <div id="lists">
@@ -124,8 +129,8 @@
                     <tr data-id="headingRow"></tr>
                 </thead>
             </table>
-            <div class="rows" data-id="rows">
-                <div class="padder" data-id="padder">
+            <div class="rows">
+                <div class="padder">
                     <table data-id="table">
                         <tbody data-id="tbody"></tbody>
                     </table>
@@ -134,8 +139,8 @@
         </script>
         
         <script id="albumbrowser" type="text/html">
-            <div class="container" data-id="container">
-                <div class="padder" data-id="padder">
+            <div class="container">
+                <div class="padder">
                     <ul data-id="ul"></ul>
                 </div>
             </div>
