@@ -26,7 +26,7 @@ musicd.VirtualList = function(el, rowProvider, columns) {
     // TODO: This is just to test phone compatibility
     var isAndroid = !!navigator.userAgent.match(/android/i);
     
-    this._ui.tbody.onmethod("mouseover", "tr", this, "_rowHighlight");
+    this._ui.tbody.onmethod("mouseover", "tr", this, "_rowMouseOver");
     this._ui.tbody.onmethod(isAndroid ? "click" : "dblclick", "td", this, "_rowDblclick");
     $(window).onmethod("resize", null, this, "_resize");
 };
@@ -181,25 +181,27 @@ musicd.VirtualList.prototype = {
         this._inhibitRowHighlight();
         this.setHighlightedIndex(this._highlightedIndex != null
             ? this._highlightedIndex + delta
-            : Math.ceil(this._ui.rows.scrollTop() / this._itemHeight));
+            : Math.ceil(this._ui.rows.scrollTop() / this._itemHeight), true);
     },
     
-    setHighlightedIndex: function(index) {
+    setHighlightedIndex: function(index, scrollToView) {
         if (index === this._highlightedIndex)
             return;
         
         this._highlightedIndex = index = Math.max(0, Math.min(index, this._cache.totalCount || 0));
         
-        var scrollTop = this._ui.rows.scrollTop(),
-            scrollHeight = this._ui.rows.height();
-        
-        if ((this._highlightedIndex + 1) * this._itemHeight > scrollTop + scrollHeight)
-            scrollTop = (this._highlightedIndex + 1) * this._itemHeight - scrollHeight;
-        
-        if (this._highlightedIndex * this._itemHeight < scrollTop)
-            scrollTop = this._highlightedIndex * this._itemHeight;
-        
-        this._ui.rows.scrollTop(scrollTop).trigger("scroll")
+        if (scrollToView) {
+            var scrollTop = this._ui.rows.scrollTop(),
+                scrollHeight = this._ui.rows.height();
+            
+            if ((this._highlightedIndex + 1) * this._itemHeight > scrollTop + scrollHeight)
+                scrollTop = (this._highlightedIndex + 1) * this._itemHeight - scrollHeight;
+            
+            if (this._highlightedIndex * this._itemHeight < scrollTop)
+                scrollTop = this._highlightedIndex * this._itemHeight;
+            
+            this._ui.rows.scrollTop(scrollTop).trigger("scroll");
+        }
         
         this._ui.tbody.children().removeClass("highlighted").filter(function() {
             return $(this).data("index") === index;
@@ -259,9 +261,9 @@ musicd.VirtualList.prototype = {
         this._debouncedUninhibitRowHighlight();
     },
     
-    _rowHighlight: function(e) {
+    _rowMouseOver: function(e) {
         if (!this._rowHighlightInhibited)
-            this.setHighlightedIndex($(e.target).closest("tr").data("index"));
+            this.setHighlightedIndex($(e.target).closest("tr").data("index"), false);
     },
     
     _resize: function() {
