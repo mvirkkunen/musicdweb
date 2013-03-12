@@ -245,7 +245,7 @@ $(function() {
     if (reasons.length)
         $("#invalid-browser").show().find(".reason").text(reasons.join(", "));
     
-    musicd.api = new musicd.APIClient("http://lumpio.dy.fi:1337/", musicd.authenticate);
+    musicd.api = new musicd.APIClient("/", musicd.authenticate);
     
     var player = new musicd.Player("#player", "#track-info");
     
