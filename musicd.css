@@ -38,6 +38,15 @@ body {
     margin-right: 40px;
 }
 
+#loading {
+    display: inline-block;
+    width: 18px;
+    height: 15px;
+    background: url(img/loading.gif) top left no-repeat;
+    margin: 0 5px;
+    vertical-align: middle;
+}
+
 #player {
     display: block;
     height: 60px;
@@ -72,6 +81,8 @@ body {
 
 #player .buttons .current-time {
     font-family: monospace;
+    font-size: 1.2em;
+    margin-right: 20px;
 }
 
 #player .seek {
