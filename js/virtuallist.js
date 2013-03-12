@@ -228,9 +228,17 @@ musicd.VirtualList.prototype = {
         }.bind(this));
     },
     
+    getRandomItem: function(callback) {
+        this._cache.getRandomItem(callback);
+    },
+    
     scrollTo: function(index, callback) {
         this._ui.rows.scrollTop(index * this._itemHeight);
         this.update(callback);
+    },
+    
+    scrollToCenter: function(index, callback) {
+        
     },
 
     refresh: function(callback) {

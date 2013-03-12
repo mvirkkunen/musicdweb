@@ -75,7 +75,7 @@ musicd.Player = function(el, trackInfo) {
     this.onTrackChange = new musicd.Event();
     
     this.trackSource = null;
-    this.repeatMode = musicd.Player.OFF;
+    this.playMode = musicd.Player.NORMAL;
     
     this.currentStart = 0;
     this.track = null;
@@ -83,12 +83,14 @@ musicd.Player = function(el, trackInfo) {
 
     this.state = musicd.Player.STOPPED;
     
+    this.clearHistory();
+    
     this._el.on("click dblclick", musicd.focusDefault);
     this._el.onmethod("click", ".toggle-play", this, "togglePlay", true);
     this._el.onmethod("click", ".stop", this, "stop", true);
     this._el.onmethod("click", ".prev", this, "rewindOrPrev", true);
     this._el.onmethod("click", ".next", this, "next", true);
-    this._el.onmethod("change", ".repeat", this, "_repeatChange", true);
+    this._el.onmethod("change", ".play-mode", this, "_playModeChange", true);
     
     this._seekSliderMouseDown = false;
     this._ui.seek.timeslider({
@@ -128,9 +130,13 @@ musicd.Player = function(el, trackInfo) {
     // Workaround for Chromium sometimes not sending the ended event
     // Perhaps related to
     // http://code.google.com/p/chromium/issues/detail?id=86830 ?
+    
+    this._audioEndedHack = true;
     setInterval(function() {
-        if (this.audio.currentTime > 315360000) // 10 years
+        if (this._audioEndedHack && this.audio.currentTime > musicd.Player.TEN_YEARS) {
+            this._audioEndedHack = false;
             this._audioEnded();
+        }
     }.bind(this), 1000);
 };
 
@@ -139,9 +145,14 @@ $.extend(musicd.Player, {
     PLAYING: 1,
     PAUSED: 2,
     
-    OFF: 0,
-    LIST: 1,
-    SINGLE: 2,
+    NORMAL: 0,
+    RANDOM: 1,
+    REPEAT_LIST: 2,
+    REPEAT_TRACK: 3,
+    
+    MAX_HISTORY: 100,
+    
+    TEN_YEARS: 315360000, // seconds
     
     createDummyAlbumArt: function(track) {
         var div = $("<div>").addClass("dummy-album-art").append(
@@ -153,13 +164,19 @@ $.extend(musicd.Player, {
 });
 
 musicd.Player.prototype = {
-    _repeatChange: function(e, select) {
-        this.repeatMode = parseInt($(select).val(), 10);
+    _playModeChange: function(e, select) {
+        this.setPlayMode(parseInt($(select).val(), 10));
     },
     
-    setRepeatMode: function(mode) {
-        this.repeatMode = mode;
-        this.el.find(".repeat").val(mode);
+    setPlayMode: function(mode) {
+        if (mode != this.playMode) {
+            this.clearHistory();
+            this.playMode = mode;
+            this._ui.playMode.val(mode);
+            
+            if (this.playMode == musicd.Player.REPEAT_TRACK && this.track)
+                this._pushHistory(this.track);
+        }
     },
     
     _audioTimeUpdate: function() {
@@ -170,7 +187,7 @@ musicd.Player.prototype = {
     },
 
     _audioEnded: function() {
-        if (this.repeatMode == musicd.Player.SINGLE)
+        if (this.playMode == musicd.Player.REPEAT_TRACK)
             this.seekTo(0);
         else
             this.next();
@@ -225,9 +242,13 @@ musicd.Player.prototype = {
     
     _updateCurrentTime: function() {
         if (this.track) {
-            this._ui.currentTime.text(
-                musicd.formatTime(this.getCurrentTime(), this.track.duration) + " / " +
-                musicd.formatTime(this.track.duration));
+            var time = this.getCurrentTime();
+            
+            if (time < musicd.Player.TEN_YEARS) {
+                this._ui.currentTime.text(
+                    musicd.formatTime(this.getCurrentTime(), this.track.duration) + " / " +
+                    musicd.formatTime(this.track.duration));
+            }
         }
     },
 
@@ -267,13 +288,17 @@ musicd.Player.prototype = {
         this.onStateChange.fire(state);
     },
     
-    setTrack: function(track) {
+    setTrack: function(track, noHistory) {
         this.stop();
         
         var prevTrack = this.track;
         this.track = track;
         
+        if (!noHistory && this.playMode == musicd.Player.RANDOM)
+            this._pushHistory(track);
+        
         this.currentStart = 0;
+        this._audioEndedHack = true;
         this.audio.src = musicd.api.getTrackURL(track);
         
         this._trackInfoUi.titles.pinHeight();
@@ -303,6 +328,23 @@ musicd.Player.prototype = {
         this.play();
         
         this.onTrackChange.fire(track);
+    },
+    
+    _pushHistory: function(track) {
+        this._historyIndex++;
+        
+        if (this._historyIndex != this._history.length)
+            this._history = this._history.slice(0, this._historyIndex);
+            
+        this._history.push(track);
+        
+        var overflow = this._history.length - musicd.Player.MAX_HISTORY;
+        if (overflow > 0) {
+            this._historyIndex -= overflow;
+            this._history = this._history.slice(overflow);
+        }
+        
+        musicd.log("_pushHistory", this._history, this._historyIndex);
     },
     
     loadAlbumInfo: function(track) {
@@ -363,7 +405,7 @@ musicd.Player.prototype = {
 
     play: function() {
         if (!this.track) {
-            this._playFirstTrack();
+            this.playFirst();
         } else {
             this._setState(musicd.Player.PLAYING);
         }
@@ -377,28 +419,47 @@ musicd.Player.prototype = {
         if (!this.trackSource)
             return;
         
-        this.trackSource.getFirstTrack(function(track) {
-            if (track) {
-                this.setTrack(track);
-                this.play();
-            }
-        }.bind(this));
+        this.trackSource[(this.playMode == musicd.Player.RANDOM)
+            ? "getRandomTrack"
+            : "getFirstTrack"]
+                (function(track) {
+                    if (track) {
+                        this.setTrack(track);
+                        this.play();
+                    }
+                }.bind(this));
     },
     
     _playAdjacentTrack: function(delta) {
         if (!this.trackSource || !this.track)
             return;
         
-        this.trackSource.getAdjacentTrack(this.track.id, delta, function(track) {
-            if (track) {
-                this.setTrack(track);
-                this.play();
-            } else if (delta < 0 || this.repeatMode == musicd.Player.LIST) {
-                this.playFirst();
-            } else {
-                this.stop();
+        if (this.playMode == musicd.Player.RANDOM) {
+            if (this._historyIndex + delta >= this._history.length) {
+                this.trackSource.getRandomTrack(function(track) {
+                    if (track) {
+                        this.setTrack(track);
+                        this.play();
+                    } else {
+                        this.stop();
+                    }
+                }.bind(this));
+            } else {            
+                this._historyIndex = Math.max(0, this._historyIndex + delta);
+                this.setTrack(this._history[this._historyIndex], true);
             }
-        }.bind(this));
+        } else {        
+            this.trackSource.getAdjacentTrack(this.track.id, delta, function(track) {
+                if (track) {
+                    this.setTrack(track);
+                    this.play();
+                } else if (delta < 0 || this.playMode == musicd.Player.REPEAT_LIST) {
+                    this.playFirst();
+                } else {
+                    this.stop();
+                }
+            }.bind(this));
+        }
     },
     
     rewindOrPrev: function() {
@@ -429,5 +490,10 @@ musicd.Player.prototype = {
         }
         
         this._updateCurrentTime();
+    },
+    
+    clearHistory: function() {
+        this._history = [];
+        this._historyIndex = -1;
     }
 };

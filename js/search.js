@@ -35,6 +35,8 @@ musicd.Search = function(el, player) {
 };
 
 musicd.Search.prototype = {
+    // TrackSource methods
+    
     getAdjacentTrack: function(id, delta, callback) {
         var index = this._vlist.getItemIndex(id);
         
@@ -51,6 +53,12 @@ musicd.Search.prototype = {
     getFirstTrack: function(callback) {
         this._vlist.getItemByIndex(0, callback);
     },
+    
+    getRandomTrack: function(callback) {
+        this._vlist.getRandomItem(callback);
+    },
+    
+    // Search methods
     
     playFirst: function() {
         this.getFirstTrack(function(track) {
@@ -88,6 +96,7 @@ musicd.Search.prototype = {
             this._lastSearch = text;
             
             this._vlist.refresh();
+            this.player.clearHistory();
         }
     },
     

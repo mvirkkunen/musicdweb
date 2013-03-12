@@ -16,6 +16,21 @@ ListCache.prototype = {
         this._loaded = {};
     },
     
+    getRandomItem: function(callback) {
+        var haveTotalCount = function() {
+            var index = Math.floor(Math.random() * this.totalCount);
+            
+            this.ensureItems(index, 1, function() {
+                callback(this.items[index]);
+            }.bind(this));
+        }.bind(this);
+        
+        if (this.totalCount === undefined)
+            this.ensureItems(0, 1, haveTotalCount);
+        else
+            haveTotalCount();
+    },
+    
     getItemIndex: function(predicate) {
         for (var page in this._loaded) {
             for (var i = page * this._pageSize, e = (page + 1) * this._pageSize;
@@ -75,6 +90,7 @@ ListCache.prototype = {
                         this._loaded[i] = true;
                     
                     items.forEach(function(item, index) {
+                        item.index = reqOffset + index;
                         this.items[reqOffset + index] = item;
                     }, this);
                     
