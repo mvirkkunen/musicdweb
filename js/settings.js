@@ -11,14 +11,10 @@ musicd.Settings.prototype = {
     get: function(key, defaultValue) {
         var val = this._settings[key];
         
-        musicd.log(key, val);
-        
         return (val !== undefined) ? val : defaultValue;
     },
     
     set: function(key, value) {
-        musicd.log(key, value);
-        
         this._settings[key] = value;
         this._saveSettings();
     },

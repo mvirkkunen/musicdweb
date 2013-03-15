@@ -230,7 +230,7 @@ musicd.authenticate = function(api) {
     dialog.find("form").on("submit", auth);
 };
 
-$(function() {
+musicd.checkCompatibility = function() {
     var reasons = [];
 
     if (!(Array.prototype.forEach && window.JSON && window.localStorage))
@@ -244,30 +244,22 @@ $(function() {
     
     if (reasons.length)
         $("#invalid-browser").show().find(".reason").text(reasons.join(", "));
-    
-    musicd.api = new musicd.APIClient("/", musicd.authenticate);
-    
-    var player = new musicd.Player("#player", "#track-info");
-    
-    var search = new musicd.Search("#search", player);
-    
-    var albumBrowser = new musicd.AlbumBrowser("#album-browser", search);
-    
-    $(".buttons .albums").click(function(e) {
-        e.stopPropagation();
-        albumBrowser.open();
-    });
-    
+};
+
+musicd.loadQueryString = function(player, search) {
     var m = location.href.match(/#(.+)$/);
     if (m) {
         var initial = musicd.parseQueryString(m[1]);
         
-        switch (initial.repeat) {
-            case "list":
-                player.setRepeatMode(musicd.Player.LIST);
+        switch (initial.mode) {
+            case "random":
+                player.setPlayMode(musicd.Player.RANDOM);
                 break;
-            case "single":
-                player.setRepeatMode(musicd.Player.SINGLE);
+            case "repeatlist":
+                player.setPlayMode(musicd.Player.REPEAT_LIST);
+                break;
+            case "repeattrack":
+                player.setPlayMode(musicd.Player.REPEAT_TRACK);
                 break;
         }
         
@@ -286,6 +278,23 @@ $(function() {
             });
         }
     }
+};
+
+$(function() {
+    musicd.checkCompatibility();
+    
+    musicd.api = new musicd.APIClient("/", musicd.authenticate);
+    
+    var player = new musicd.Player("#player", "#track-info");
+    
+    var search = new musicd.Search("#search", player);
+    
+    var albumBrowser = new musicd.AlbumBrowser("#album-browser", search);
+    
+    $(".buttons .albums").click(function(e) {
+        e.stopPropagation();
+        albumBrowser.open();
+    });
     
     $("#server-status .log-out").click(function(e) {
         e.preventDefault();
@@ -295,6 +304,8 @@ $(function() {
         
         location.reload();
     });
+    
+    musicd.loadQueryString(player, search);
     
     // Below this line there be temporary hacks - beware!
     
@@ -323,10 +334,12 @@ $(function() {
         if (player.track)
             args.push("trackid=" + player.track.id);
             
-        if (player.repeatMode == musicd.Player.LIST)
-            args.push("repeat=list");
-        else if (player.repeatMode == musicd.Player.SINGLE)
-            args.push("repeat=single");
+        if (player.playMode == musicd.Player.RANDOM)
+            args.push("mode=random");
+        else if (player.playMode == musicd.Player.REPEAT_LIST)
+            args.push("mode=repeatlist");
+        else if (player.playMode == musicd.Player.REPEAT_TRACK)
+            args.push("mode=repeattrack");
         
         if (player.state == musicd.Player.PLAYING)
             args.push("autoplay");
