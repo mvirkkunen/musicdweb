@@ -138,6 +138,10 @@ musicd.Player = function(el, trackInfo) {
             this._audioEnded();
         }
     }.bind(this), 1000);
+
+    // TODO: wat
+    $(window).onmethod("resize", null, this, "_resize");
+    this._resize();
 };
 
 $.extend(musicd.Player, {
@@ -351,6 +355,10 @@ musicd.Player.prototype = {
         this.play();
         
         this.onTrackChange.fire(track);
+    },
+
+    _resize: function() {
+        this._trackInfoUi.lyrics.css("maxHeight", $(window).height() - this._trackInfoUi.lyrics.offset().top - 10);
     },
     
     _pushHistory: function(track) {

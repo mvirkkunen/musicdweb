@@ -173,6 +173,7 @@ body {
 
 #track-info .lyrics {
     margin: 20px 0;
+    overflow-y: auto;
 }
 
 #track-info .lyrics-text {
