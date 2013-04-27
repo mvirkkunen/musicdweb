@@ -289,6 +289,8 @@ musicd.Player.prototype = {
     },
     
     setTrack: function(track, noHistory) {
+        var self = this;
+
         this.stop();
         
         var prevTrack = this.track;
@@ -324,6 +326,27 @@ musicd.Player.prototype = {
         {
             this.loadAlbumInfo(track);
         }
+
+        self._trackInfoUi.lyrics.show();
+        self._trackInfoUi.lyricsLoading.show();
+        self._trackInfoUi.lyricsText.hide();
+        self._trackInfoUi.lyricsSource.hide();
+        self._trackInfoUi.lyricsUnavailable.hide();
+
+        musicd.api.call(null, "track/lyrics", { id: track.id }, function(r) {
+            self._trackInfoUi.lyricsLoading.hide();
+            self._trackInfoUi.lyricsText.show().text(r.lyrics);
+
+            if (r.source) {
+                self._trackInfoUi.lyricsSource.show();
+                self._trackInfoUi.lyricsSourceLink.text(r.provider).attr("href", r.source);
+            }
+        }, function (xhr) {
+            self._trackInfoUi.lyricsLoading.hide();
+            self._trackInfoUi.lyricsUnavailable.show();
+
+            return true;
+        });
         
         this.play();
         
@@ -372,7 +395,7 @@ musicd.Player.prototype = {
             }.bind(this));
         }
         
-        if (track.albumid) {        
+        if (track.albumid) {
             var img = $("<img>"),
                 src = musicd.api.getAlbumImageURL(track.albumid, 256);
             

@@ -17,7 +17,7 @@ function requestEquals(a, b) {
 }
 
 musicd.APIClient.prototype = {
-    call: function(name, method, args, success) {
+    call: function(name, method, args, success, error) {
         if (args) {
             var key;
             for (key in args) {
@@ -30,7 +30,8 @@ musicd.APIClient.prototype = {
             name: name,
             method: method,
             args: args,
-            success: success
+            success: success,
+            error: error
         };
         
         if (name) {
@@ -97,14 +98,18 @@ musicd.APIClient.prototype = {
     },
 
     _requestError: function(xhr) {
+        var r = this.request;
+
         this.request = null;
         this.xhr = null;
         
         if (xhr.status == 403) {
             this.authCallback(this);
         } else {
-            if (xhr.getAllResponseHeaders())
-                alert("API error");
+            if (xhr.getAllResponseHeaders()) {
+                if (!r.error || !r.error())
+                    alert("API error");
+            }
 
             this.queue.shift();
 
