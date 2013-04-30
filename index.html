@@ -9,6 +9,7 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/2.2.1/knockout-min.js"></script>
+        <script src="js/knockout-jqueryui.min.js"></script>
         <script src="js/main.js"></script>
         <script src="js/api.js"></script>
         <script src="js/ui.js"></script>
@@ -35,25 +36,25 @@
             </div>
         </script>
 
-        <div id="player">
+        <div id="player" data-bind="click: musicd.focusDefault">
             <div id="server-status">
                 <a href="#" class="log-out">Log out</a>
             </div>
         
             <div class="buttons">
-                <button class="toggle-play" accesskey="p" title="Play/pause (p)">▶</button>
-                <button class="stop" accesskey="s" title="Stop (s)">■</button>
-                <button class="prev" accesskey="b" title="Previous (b)">◀◀</button>
-                <button class="next" accesskey="n" title="Next (n)">▶▶</button>
-                <button class="albums" accesskey="a" title="Album browser (a)">▞▞</button>
+                <button class="toggle-play" accesskey="p" title="Play/pause (p)" data-bind="click: togglePlay, text: (state == musicd.Player.PLAYING ? '▮▮' : '▶')"></button>
+                <button class="stop" accesskey="s" title="Stop (s)" data-bind="click: stop">■</button>
+                <button class="prev" accesskey="b" title="Previous (b)" data-bind="click: rewindOrPrev">◀◀</button>
+                <button class="next" accesskey="n" title="Next (n)" data-bind="click: next">▶▶</button>
+                <!--<button class="albums" accesskey="a" title="Album browser (a)">▞▞</button>-->
                 
-                <span id="loading" style="visibility: hidden;"></span>
+                <span id="loading" data-bind="style: { 'visibility': musicd.api.loading() ? 'visible' : 'hidden' }"></span>
                 
-                <span class="current-time">--:-- / --:--</span>
+                <span class="current-time" data-bind="text: currentTimeString"></span>
                 
                 <label>
                     Play mode: 
-                    <select class="play-mode">
+                    <select data-bind="value: playMode">
                         <option value="0">Normal</option>
                         <option value="1">Random</option>
                         <option value="2">Repeat list</option>
@@ -64,8 +65,16 @@
                 <a href="#" class="current-link">Link to current</a>
             </div>
 
-            <div class="seek"></div>
-            <div class="volume"></div>
+            <div class="seek"
+                 data-bind="timeslider: {
+                                value: seekSliderTime,
+                                animate: 'fast',
+                                range: 'min',
+                                min: 0,
+                                max: duration,
+                                disabled: notSeekable,
+                                start: _seekSliderStart.bind($data) }"></div>
+            <div class="volume" data-bind="slider: { value: volume, orientation: 'vertical', min: 0, max: 100 }"></div>
         </div>
         
         <div id="track-info">

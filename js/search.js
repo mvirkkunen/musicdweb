@@ -132,7 +132,7 @@ musicd.Search.prototype = {
     },
     
     _onItemActivate: function(track) {
-        this.player.setTrack(track);
+        this.player.track(track);
         
         this._vlist.clearSelection();
         this._vlist.setItemSelected(track.id, true);

@@ -1,13 +1,13 @@
 "use strict";
 
-musicd.TrackInfo = function() {
+musicd.TrackInfo = function(track) {
     var self = this;
 
-    self.track = ko.observable();
+    self.track = track;
 
     self.detailsVisible = musicd.observableSetting("TrackInfo.detailsVisible");
 
-    self.albumArt = new musicd.AlbumArt(self.track);
+    self.albumArt = new musicd.AlbumArt(track);
 
     self.lyricsLoading = ko.observable(false);
     self.lyrics = ko.observable(null);
@@ -21,8 +21,6 @@ musicd.TrackInfo = function() {
 
     ko.computed(function() {
         var track = self.track();
-
-        self.albumArt.track(track);
 
         self.lyrics(null);
 

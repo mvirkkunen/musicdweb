@@ -194,9 +194,11 @@ $(function() {
     
     musicd.api = new musicd.APIClient("/", musicd.authenticate);
     
-    var player = new musicd.Player("#player");
+    var player = new musicd.Player();
+    ko.applyBindings(player, $("#player")[0]);
 
-    ko.applyBindings(player.trackInfo, $("#track-info")[0]);
+    var trackInfo = new musicd.TrackInfo(player.track);
+    ko.applyBindings(trackInfo, $("#track-info")[0]);
     
     var search = new musicd.Search("#search", player);
     

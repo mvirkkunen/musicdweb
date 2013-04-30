@@ -1,115 +1,78 @@
 "use strict";
 
-$.widget("ui.timeslider", $.ui.slider, {
-    _create: function() {
-        this._superApply(arguments);
-        
-        this.element.append(this._tsTime =
-            $("<div>").addClass("slider-time")
-                .append($("<div>"))
-                .append(this._tsTimeText = $("<span>")).hide());
-        
-        this._tsMouseIn = false;
-        
-        this._on({
-            mousemove: this._tsMouseMove,
-            mouseenter: function() {
-                this._tsMouseIn = true;
-            },
-            mouseleave: function() {
-                this._tsMouseIn = false;
-                
-                if (!this._mouseSliding)
-                    this._tsTime.hide();
-            },
-        });
-    },
+musicd.Player = function(el) {  
+    var self = this;
     
-    _slide: function(e) {
-        this._superApply(arguments);
-        this._tsMouseMove(e);
-    },
-    
-    _stop: function() {
-        this._superApply(arguments);
-        if (!this._tsMouseIn)
-            this._tsTime.hide();
-    },
-    
-    _tsMouseMove: function(e) {
-        if (!this.elementSize) {
-            this.elementSize = {
-                width: this.element.outerWidth(),
-                height: this.element.outerHeight()
-            };
-            this.elementOffset = this.element.offset();
-        }
-        
-        var value = this._normValueFromMouse({x: e.pageX, y: e.pageY}),
-            valPercent = (value - this._valueMin())
-                / (this._valueMax() - this._valueMin()) * 100;
-        
-        this._tsTimeText.text(musicd.formatTime(value));
-        this._tsTime.css({
-            "marginLeft": -this._tsTime.outerWidth() / 2,
-            "left": e.pageX - this.elementOffset.left
-        }).show();
-    }
-});
+    self.audio = new Audio();
+    window.debugaudio = self.audio;
+    self.audio.addEventListener("timeupdate", self._audioTimeUpdate.bind(self), true);
+    self.audio.addEventListener("ended", self._audioEnded.bind(self), true);
+    self.audioSrc = ko.observable(null);
+    self.audioSrc.subscribe(function(val) {
+        self._audioEndedHack = true;
 
-musicd.Player = function(el) {
-    this._el = $(el);
-    this._ui = this._el.elementMap();
-
-    this.trackInfo = new musicd.TrackInfo();
-    
-    this.audio = new Audio();
-    window.debugaudio = this.audio;
-    this.audio.addEventListener("timeupdate", this._audioTimeUpdate.bind(this), true);
-    this.audio.addEventListener("ended", this._audioEnded.bind(this), true);
-
-    this.onAudioEnd = new musicd.Event();
-    this.onStateChange = new musicd.Event();
-    this.onTrackChange = new musicd.Event();
-    
-    this.trackSource = null;
-    this.playMode = musicd.Player.NORMAL;
-    
-    this.currentStart = 0;
-    this.track = null;
-    this.pendingSeek = null;
-
-    this.state = musicd.Player.STOPPED;
-    
-    this.clearHistory();
-    
-    this._el.on("click dblclick", musicd.focusDefault);
-    this._el.onmethod("click", ".toggle-play", this, "togglePlay", true);
-    this._el.onmethod("click", ".stop", this, "stop", true);
-    this._el.onmethod("click", ".prev", this, "rewindOrPrev", true);
-    this._el.onmethod("click", ".next", this, "next", true);
-    this._el.onmethod("change", ".play-mode", this, "_playModeChange", true);
-    
-    this._seekSliderMouseDown = false;
-    this._ui.seek.timeslider({
-        animate: "fast",
-        range: "min",
-        start: this._seekSliderStart.bind(this),
-        stop: this._seekSliderStop.bind(this)
+        self.audio.pause();
+        self.audio.src = val;
+        self.audioTime(0);
     });
-    this._ui.volume.slider({
-        orientation: "vertical",
-        min: 0,
-        max: 100,
-        value: Math.floor(musicd.settings.get("Player.volume", 1.0) * 100),
-        slide: this._volSliderChange.bind(this),
-        stop: this._volSliderChange.bind(this)
+
+    self.onAudioEnd = new musicd.Event();
+    self.onStateChange = new musicd.Event();
+    self.onTrackChange = new musicd.Event();
+    
+    self.playMode = ko.observable(musicd.Player.NORMAL).extend({ integer: true });
+    self.playMode.subscribe(function(val) {
+        self.clearHistory();
+        
+        if (self.playMode() == musicd.Player.REPEAT_TRACK && self.track())
+            self._pushHistory(self.track());
     });
-    this._volSliderChange();
+    self.trackSource = null;
+    
+    self.track = ko.observable(null);
+    self.track.subscribe(self._trackChanged, self);
+    self.notSeekable = ko.computed(function() {
+        return self.track() == null;
+    });
+    self.duration = ko.computed(function() {
+        return self.track() ? self.track().duration : 0;
+    });
+    
+    self.audioTime = ko.observable(0);
+    self.pendingSeek = ko.observable(null);
+    self.currentStart = ko.observable(0);
+
+    self.currentTime = ko.computed(function() {
+        if (self.pendingSeek() !== null)
+            return self.pendingSeek();
+        else
+            return self.currentStart() + self.audioTime();
+    });
+    self.currentTimeString = ko.computed(function() {
+        var track = self.track(), time = Math.floor(self.currentTime());
+
+        return (track && time < musicd.Player.TEN_YEARS)
+            ? (musicd.formatTime(self.currentTime(), self.track().duration) + " / " +
+                musicd.formatTime(self.track().duration))
+            : "--:-- / --:--";
+    });
+
+    self.seekSliderTime = ko.observable(0);
+    self.seekSliderTime.subscribe(self.seekTo, self, "manualChange");
+
+    self.state = ko.observable(musicd.Player.STOPPED);
+    self.state.subscribe(self._stateChanged, self);
+
+    self.volume = musicd.observableSetting("Player.volume", 100);
+    ko.computed(function() {
+        self.audio.volume = self.volume() / 100;
+    });
+    
+    self.clearHistory();
+    
+    this._seekSliderMoving = false;
     
     this.stop();
-    this._updateSeekable();
-    this._updateCurrentTime();
     
     // Workaround for Chromium sometimes not sending the ended event
     // Perhaps related to
@@ -148,31 +111,16 @@ $.extend(musicd.Player, {
 });
 
 musicd.Player.prototype = {
-    _playModeChange: function(e, select) {
-        this.setPlayMode(parseInt($(select).val(), 10));
-    },
-    
-    setPlayMode: function(mode) {
-        if (mode != this.playMode) {
-            this.clearHistory();
-            this.playMode = mode;
-            this._ui.playMode.val(mode);
-            
-            if (this.playMode == musicd.Player.REPEAT_TRACK && this.track)
-                this._pushHistory(this.track);
-        }
-    },
-    
     _audioTimeUpdate: function() {
-        if (!this._seekSliderMouseDown)
-            this._ui.seek.timeslider("option", "value", Math.floor(this.getCurrentTime()));
-        
-        this._updateCurrentTime();
+        this.audioTime(this.audio.currentTime);
+
+        if (!this._seekSliderMoving)
+            this.seekSliderTime(this.currentTime());
     },
 
     _audioEnded: function() {
-        if (this.playMode == musicd.Player.REPEAT_TRACK)
-            this.seekTo(0);
+        if (this.playMode() == musicd.Player.REPEAT_TRACK)
+            this.currentTime(0);
         else
             this.next();
         
@@ -180,118 +128,51 @@ musicd.Player.prototype = {
     },
 
     _seekSliderStart: function() {
-        this._seekSliderMouseDown = true;
+        this._seekSliderMoving = true;
     },
 
-    _seekSliderStop: function() {
-        this._seekSliderMouseDown = false;
+    _stateChanged: function() {
+        var self = this, state = self.state();
 
-        var time = this._ui.seek.timeslider("value");
-
-        this.seekTo(time);
-        
-        musicd.focusDefault();
-    },
-    
-    _volSliderChange: function() {
-        var volume = this._ui.volume.slider("value") / 100;
-        
-        this.audio.volume = volume;
-        musicd.settings.set("Player.volume", volume);
-    },
-
-    _updateSeekable: function() {
-        if (this.track) {
-            this._ui.seek.timeslider("option", {
-                disabled: false,
-                min: 0,
-                max: Math.floor(this.track.duration)
-            });
-        } else {
-            this._ui.seek.timeslider("option", {
-                disabled: true,
-                min: 0,
-                max: 0,
-                value: 0
-            });        
-        }
-    },
-    
-    getCurrentTime: function() {
-        if (this.pendingSeek !== null)
-            return this.pendingSeek;
-        
-        return this.currentStart + this.audio.currentTime;
-    },
-    
-    _updateCurrentTime: function() {
-        if (this.track) {
-            var time = this.getCurrentTime();
-            
-            if (time < musicd.Player.TEN_YEARS) {
-                this._ui.currentTime.text(
-                    musicd.formatTime(this.getCurrentTime(), this.track.duration) + " / " +
-                    musicd.formatTime(this.track.duration));
-            }
-        }
-    },
-
-    _setState: function(state) {
-        if (this.state == state)
-            return;
-
-        if (state == musicd.Player.PLAYING) {            
-            if (this.track) {
-                if (this.pendingSeek !== null) {
-                    this.audio.pause();
-                    this.audio.src = musicd.api.getTrackURL(this.track, this.pendingSeek);
-                    this.pendingSeek = null;
+        if (state == musicd.Player.PLAYING) {
+            if (self.track()) {
+                if (self.pendingSeek() !== null) {
+                    this.audioSrc(musicd.api.getTrackURL(self.track(), this.pendingSeek()));
+                    self.pendingSeek(null);
                 }
             
-                this.audio.play();
+                self.audio.play();
             } else {
-                this.playFirst();
+                self.playFirst();
             }
         } else {
-            this.audio.pause();
+            self.audio.pause();
         }
         
         $("#favicon").attr("href", "img/icon-" + ["stop", "play", "pause"][state] + ".png");
-
-        this.state = state;
         
         if (state == musicd.Player.STOPPED)
-            this.seekTo(0);
-
-        this._ui.togglePlay
-            .toggleClass("pause", this.state == musicd.Player.PLAYING)
-            .text(this.state == musicd.Player.PLAYING ? "▮▮" : "▶");
-
-        this._updateSeekable();
+            self.seekTo(0);
         
-        this.onStateChange.fire(state);
+        self.onStateChange.fire(state);
     },
     
-    setTrack: function(track, noHistory) {
-        var self = this;
+    _trackChanged: function() {
+        var self = this, track = self.track();
 
-        this.stop();
+        self.stop();
         
-        var prevTrack = this.track;
-        this.track = track;
-        
-        if (!noHistory && this.playMode == musicd.Player.RANDOM)
+        if (!self._noHistory && self.playMode() == musicd.Player.RANDOM)
             this._pushHistory(track);
         
-        this.currentStart = 0;
-        this._audioEndedHack = true;
-        this.audio.src = musicd.api.getTrackURL(track);
-
-        this.trackInfo.track(this.track);
+        self.currentStart(0);
+        self.audioTime(0);
+        self.pendingSeek(null);
+        self.audioSrc(musicd.api.getTrackURL(track));
         
-        this.play();
+        self.play();
         
-        this.onTrackChange.fire(track);
+        self.onTrackChange.fire(track);
     },
 
     _pushHistory: function(track) {
@@ -307,80 +188,89 @@ musicd.Player.prototype = {
             this._historyIndex -= overflow;
             this._history = this._history.slice(overflow);
         }
-        
-        musicd.log("_pushHistory", this._history, this._historyIndex);
+
+        musicd.log("History: ", track);
+        console.trace();
     },
     
     togglePlay: function() {
-        this._setState(this.state == musicd.Player.PLAYING
+        this.state(this.state() == musicd.Player.PLAYING
             ? musicd.Player.PAUSED
             : musicd.Player.PLAYING);
     },
 
+    pause: function() {
+        this.state(musicd.Player.PAUSED);
+    },
+
     play: function() {
-        if (!this.track) {
-            this.playFirst();
-        } else {
-            this._setState(musicd.Player.PLAYING);
-        }
+        this.state(musicd.Player.PLAYING);
     },
 
     stop: function() {
-        this._setState(musicd.Player.STOPPED);
+        this.state(musicd.Player.STOPPED);
     },
     
     playFirst: function() {
-        if (!this.trackSource)
+        var self = this;
+
+        if (!self.trackSource)
             return;
         
-        this.trackSource[(this.playMode == musicd.Player.RANDOM)
+        self.trackSource[(self.playMode() == musicd.Player.RANDOM)
             ? "getRandomTrack"
             : "getFirstTrack"]
                 (function(track) {
                     if (track) {
-                        this.setTrack(track);
-                        this.play();
+                        self.track(track);
+                        self.play();
                     }
-                }.bind(this));
+                });
     },
     
     _playAdjacentTrack: function(delta) {
-        if (!this.trackSource || !this.track)
+        var self = this;
+
+        if (!self.trackSource || !self.track())
             return;
         
-        if (this.playMode == musicd.Player.RANDOM) {
-            if (this._historyIndex + delta >= this._history.length) {
-                this.trackSource.getRandomTrack(function(track) {
+        if (self.playMode() == musicd.Player.RANDOM) {
+            if (self._historyIndex + delta >= self._history.length) {
+                self.trackSource.getRandomTrack(function(track) {
                     if (track) {
-                        this.setTrack(track);
-                        this.play();
+                        self.track(track);
+                        self.play();
                     } else {
-                        this.stop();
+                        self.stop();
                     }
-                }.bind(this));
+                });
             } else {            
-                this._historyIndex = Math.max(0, this._historyIndex + delta);
-                this.setTrack(this._history[this._historyIndex], true);
+                self._historyIndex = Math.max(0, self._historyIndex + delta);
+                self._noHistory = true;
+                self.track(this._history[self._historyIndex]);
+                self._noHistory = false;
             }
         } else {        
-            this.trackSource.getAdjacentTrack(this.track.id, delta, function(track) {
+            this.trackSource.getAdjacentTrack(self.track().id, delta, function(track) {
                 if (track) {
-                    this.setTrack(track);
-                    this.play();
-                } else if (delta < 0 || this.playMode == musicd.Player.REPEAT_LIST) {
-                    this.playFirst();
+                    self.track(track);
+                    self.play();
+                } else if (delta < 0 || self.playMode() == musicd.Player.REPEAT_LIST) {
+                    self.playFirst();
                 } else {
-                    this.stop();
+                    self.stop();
                 }
-            }.bind(this));
+            });
         }
     },
     
     rewindOrPrev: function() {
-        if (this.getCurrentTime() < 5)
-            this.prev();
+        var self = this;
+
+        if (self.currentTime() < 5)
+            self.prev();
         else
-            this.seekTo(0);
+            self.seekTo(0);
     },
 
     prev: function() {
@@ -392,18 +282,19 @@ musicd.Player.prototype = {
     },
 
     seekTo: function(seconds) {
-        this.currentStart = seconds;
+        var self = this;
+
+        this._seekSliderMoving = false;
+
+        self.currentStart(seconds);
         
-        if (this.state == musicd.Player.PLAYING) {
-            this.audio.pause();
-            this.audio.src = musicd.api.getTrackURL(this.track, seconds);
-            this.audio.play();
+        if (self.state() == musicd.Player.PLAYING) {
+            self.audioSrc(musicd.api.getTrackURL(self.track(), seconds));
+            self.audio.play();
         } else {
-            this.pendingSeek = seconds;
-            this._ui.seek.timeslider("option", "value", seconds);
+            self.pendingSeek(seconds);
+            self.seekSliderTime(seconds);
         }
-        
-        this._updateCurrentTime();
     },
     
     clearHistory: function() {

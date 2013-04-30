@@ -7,7 +7,7 @@ musicd.APIClient = function(url, authCallback) {
     this.queue = [];
     this._urlPrefix = url;
     this.request = null;
-    this._loading = $("#loading");
+    this.loading = ko.observable(false);
 };
 
 function requestEquals(a, b) {
@@ -66,7 +66,7 @@ musicd.APIClient.prototype = {
     },
 
     _executeNext: function() {
-        this._loading.css("visibility", this.queue.length ? "visible" : "hidden");
+        this.loading(!!this.queue.length);
         
         if (this.request || !this.queue.length)
             return;
