@@ -8,20 +8,33 @@
         <link id="favicon" rel="shortcut icon" type="image/png" href="img/icon-stop.png" />
         <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/2.2.1/knockout-min.js"></script>
         <script src="js/main.js"></script>
         <script src="js/api.js"></script>
+        <script src="js/ui.js"></script>
         <script src="js/settings.js"></script>
         <script src="js/listcache.js"></script>
         <script src="js/virtuallist.js"></script>
         <script src="js/player.js"></script>
+        <script src="js/trackinfo.js"></script>
         <script src="js/search.js"></script>
-        <script src="js/albumbrowser.js"></script>
+        <!--<script src="js/albumbrowser.js"></script>-->
     </head>
     <body>
         <div id="invalid-browser" class="error" style="display: none;">
             <strong>Warning:</strong> Your browser is not supported (reason: <span class="reason"></span>)
         </div>
         
+        <script type="text/html" id="template-album-art">
+            <div class="dummy-album-art" data-bind="visible: url() == 'dummy://'">
+                <h3 data-bind="text: (track() &amp;&amp; track().album) ? track().album : 'Untitled album'"></h3>
+                <p data-bind="text: (track() &amp;&amp; track().artist) ? track().artist : 'Untitled artist'"></p>
+            </div>
+            <div class="album-image" data-bind="if: url() != 'dummy://'">
+                <img data-bind="attr: { src: url }" alt="Album art" />
+            </div>
+        </script>
+
         <div id="player">
             <div id="server-status">
                 <a href="#" class="log-out">Log out</a>
@@ -56,28 +69,37 @@
         </div>
         
         <div id="track-info">
-            <div class="titles">
-                <div class="titles-container">
-                    <h2 class="track-name"><span>(no track)</span></h2>
-                    <h2 class="artist" style="display: none;">by <span></span></h2>
-                    <h2 class="album" style="display: none;">on <span></span></h2>
-                </div>
+            <div class="titles" data-bind="with: track">
+                <h2 data-bind="visible: title">
+                    <span data-bind="text: title"></span>
+                </h2>
+                <h2 data-bind="visible: artist">
+                    by <span data-bind="text: artist"></span>
+                </h2>
+                <h2 data-bind="visible: album">
+                    on <span data-bind="text: album"></span>
+                </h2>
             </div>
-            <p>
-                <a href="#" class="toggle-details">Toggle details</a>
-            </p>
-            <div class="details">
-                <div class="album-art">
-                    <div class="dummy-album-art"></div>
-                </div>
+            <div class="title" data-bind="ifnot: track">
+                <h2>(no track)</h2>
+            </div>
 
-                <div class="lyrics" style="display: none;">
-                    <div class="lyrics-text" style="display: none;"></div>
-                    <div class="lyrics-source" style="display: none;">
-                        Source: <a class="lyrics-source-link" target="_blank"></a>
+            <p>
+                <a href="#" class="toggle-details" data-bind="click: toggleDetails">Toggle details</a>
+            </p>
+
+            <div class="details" data-bind="slideVisible: detailsVisible">
+                <div class="album-art" data-bind="template: { name: 'template-album-art', data: albumArt }"></div>
+
+                <div class="lyrics" data-bind="with: lyrics, offset: lyricsOffset, style: { maxHeight: lyricsMaxHeight }">
+                    <div class="text" data-bind="text: lyrics"></div>
+                    <div class="source" data-bind="if: source">
+                        Source: <a target="_blank" data-bind="text: provider, attr: { href: source }"></a>
                     </div>
-                    <div class="lyrics-loading" style="display: none;"></div>
-                    <div class="lyrics-unavailable" style="display: none;">Lyrics unavailable</div>
+                </div>
+                <div class="lyrics" data-bind="ifnot: lyrics">
+                    <div class="loading" data-bind="visible: lyricsLoading"></div>
+                    <div class="unavailable" data-bind="visible: !lyricsLoading()">Lyrics unavailable</div>
                 </div>
             </div>
         </div>

@@ -34,4 +34,14 @@ musicd.Settings.prototype = {
 
 musicd.settings = new musicd.Settings();
 
+musicd.observableSetting = function(key, defaultValue) {
+    var setting = ko.observable(musicd.settings.get(key, defaultValue));
+
+    setting.subscribe(function(value) {
+        musicd.settings.set(key, value);
+    });
+
+    return setting;
+};
+
 })();

@@ -38,7 +38,7 @@ body {
     margin-right: 40px;
 }
 
-#loading, #track-info .lyrics-loading {
+#loading, #track-info .lyrics .loading {
     display: inline-block;
     width: 18px;
     height: 15px;
@@ -172,25 +172,22 @@ body {
 }
 
 #track-info .lyrics {
-    margin: 20px 0;
+    margin-top: 20px;
     overflow-y: auto;
 }
 
-#track-info .lyrics-text {
+#track-info .lyrics .text {
     white-space: pre-line;
 }
 
-#track-info .lyrics-unavailable {
+#track-info .lyrics .unavailable {
     color: #888;
     font-style: italic;
 }
 
-#track-info .lyrics-source {
+#track-info .lyrics .source {
     margin-top: 10px;
     font-size: 0.8em;
-}
-
-#track-info .lyrics-source {
     color: inherit;
 }
 

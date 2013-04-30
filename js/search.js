@@ -14,7 +14,7 @@ musicd.Search = function(el, player) {
     
     this._totalResults = this.el.find(".total-results");
     
-    this._search.on("keyup search", $.throttle(250, this._searchKeyUp.bind(this)));
+    this._search.on("keyup search", this._searchKeyUp.bind(this));
     
     this._vlist = new musicd.VirtualList(this.el.find(".track-list"),
         this._itemProvider.bind(this),

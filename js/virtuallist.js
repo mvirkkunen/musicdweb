@@ -4,7 +4,7 @@ musicd.VirtualList = function(el, rowProvider, columns) {
     this._el = $(el).addClass("virtual-list").render("virtuallist");
     this._ui = this._el.elementMap();
     
-    this._cache = new ListCache($.throttle(500, rowProvider));
+    this._cache = new ListCache(rowProvider);
                 
     this._drawExtraItems = 40;
     this._drawnPos = null;
@@ -17,11 +17,12 @@ musicd.VirtualList = function(el, rowProvider, columns) {
     
     this.onItemActivate = new musicd.Event();
     
-    this._debouncedUninhibitRowHighlight = $.debounce(200, function() {
+    /*this._debouncedUninhibitRowHighlight = $.debounce(200, function() {
         this._rowHighlightInhibited = false;
-    }.bind(this));
+    }.bind(this));*/
     
-    this._ui.rows.on("scroll", $.debounce(100, function() { this.update(); }.bind(this)));
+    //this._ui.rows.on("scroll", $.debounce(100, function() { this.update(); }.bind(this)));
+    this._ui.rows.on("scroll", this.update.bind(this));
     
     // TODO: This is just to test phone compatibility
     var isAndroid = !!navigator.userAgent.match(/android/i);
@@ -266,7 +267,7 @@ musicd.VirtualList.prototype = {
     
     _inhibitRowHighlight: function() {
         this._rowHighlightInhibited = true;
-        this._debouncedUninhibitRowHighlight();
+        //this._debouncedUninhibitRowHighlight();
     },
     
     _rowMouseOver: function(e) {

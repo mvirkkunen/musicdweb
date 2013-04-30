@@ -57,13 +57,11 @@ $.widget("ui.timeslider", $.ui.slider, {
     }
 });
 
-musicd.Player = function(el, trackInfo) {
+musicd.Player = function(el) {
     this._el = $(el);
     this._ui = this._el.elementMap();
-    this._trackInfo = $(trackInfo);
-    this._trackInfoUi = this._trackInfo.elementMap();
-    
-    //this._albumArt = this._trackInfo.find(".album-art");
+
+    this.trackInfo = new musicd.TrackInfo();
     
     this.audio = new Audio();
     window.debugaudio = this.audio;
@@ -109,20 +107,6 @@ musicd.Player = function(el, trackInfo) {
     });
     this._volSliderChange();
     
-    this._trackInfoUi.details.toggle(musicd.settings.get("Player.trackDetailsVisible", true));
-    this._trackInfoUi.toggleDetails.click(function(e) {
-        e.preventDefault();
-        
-        var visible = !this._trackInfoUi.details.is(":visible");
-        
-        this._trackInfoUi.details.stop();
-        musicd.settings.set("Player.trackDetailsVisible", visible);
-        this._trackInfoUi.details.slideToggle();
-        
-        if (visible && this.track)
-            this.loadAlbumInfo(this.track);
-    }.bind(this));
-    
     this.stop();
     this._updateSeekable();
     this._updateCurrentTime();
@@ -138,10 +122,6 @@ musicd.Player = function(el, trackInfo) {
             this._audioEnded();
         }
     }.bind(this), 1000);
-
-    // TODO: wat
-    $(window).onmethod("resize", null, this, "_resize");
-    this._resize();
 };
 
 $.extend(musicd.Player, {
@@ -306,61 +286,14 @@ musicd.Player.prototype = {
         this.currentStart = 0;
         this._audioEndedHack = true;
         this.audio.src = musicd.api.getTrackURL(track);
-        
-        this._trackInfoUi.titles.pinHeight();
-        this._trackInfoUi.trackName.toggle(!!track.title).find("span").text(track.title);
-        this._trackInfoUi.album.toggle(!!track.album).find("span").text(track.album);
-        this._trackInfoUi.artist.toggle(!!track.artist).find("span").text(track.artist);
-        this._trackInfoUi.titles.animateNaturalHeight(400);
-        
-        var names = [track.title, track.album, track.artist, "musicd"], title = "";
-        names.forEach(function(n) {
-            if (n) {
-                if (title)
-                    title += " :: ";
-                
-                title += n;
-            }
-        });
-        
-        document.title = title;
-        
-        if (!prevTrack || prevTrack.albumid != track.albumid
-            || prevTrack.artistid != track.artistid)
-        {
-            this.loadAlbumInfo(track);
-        }
 
-        self._trackInfoUi.lyrics.show();
-        self._trackInfoUi.lyricsLoading.show();
-        self._trackInfoUi.lyricsText.hide();
-        self._trackInfoUi.lyricsSource.hide();
-        self._trackInfoUi.lyricsUnavailable.hide();
-
-        musicd.api.call(null, "track/lyrics", { id: track.id }, function(r) {
-            self._trackInfoUi.lyricsLoading.hide();
-            self._trackInfoUi.lyricsText.show().text(r.lyrics);
-
-            if (r.source) {
-                self._trackInfoUi.lyricsSource.show();
-                self._trackInfoUi.lyricsSourceLink.text(r.provider).attr("href", r.source);
-            }
-        }, function (xhr) {
-            self._trackInfoUi.lyricsLoading.hide();
-            self._trackInfoUi.lyricsUnavailable.show();
-
-            return true;
-        });
+        this.trackInfo.track(this.track);
         
         this.play();
         
         this.onTrackChange.fire(track);
     },
 
-    _resize: function() {
-        this._trackInfoUi.lyrics.css("maxHeight", $(window).height() - this._trackInfoUi.lyrics.offset().top - 10);
-    },
-    
     _pushHistory: function(track) {
         this._historyIndex++;
         
@@ -376,56 +309,6 @@ musicd.Player.prototype = {
         }
         
         musicd.log("_pushHistory", this._history, this._historyIndex);
-    },
-    
-    loadAlbumInfo: function(track) {
-        var loadAlbumId = track.albumid;
-        
-        function unknown() {
-            if (this.track && this.track.albumid === loadAlbumId) {
-                this._trackInfoUi.albumArt.queue(function(next) {
-                    this._trackInfoUi.albumArt.empty();
-                    
-                    var div = musicd.Player.createDummyAlbumArt(track);
-                
-                    div.css("opacity", 0).appendTo(this._trackInfoUi.albumArt).animate({opacity: 1}, 400);
-                    
-                    this._trackInfoUi.albumArt.animate({ height: div.outerHeight() }, 400);
-                    
-                    next();
-                }.bind(this));
-            }
-        }
-        
-        if (this._trackInfoUi.albumArt.children().length) {
-            this._trackInfoUi.albumArt.stop(true, true).queue(function(next) {
-                this._trackInfoUi.albumArt.children().animate({opacity: 0}, 400, next);
-            }.bind(this));
-        }
-        
-        if (track.albumid) {
-            var img = $("<img>"),
-                src = musicd.api.getAlbumImageURL(track.albumid, 256);
-            
-            img.one("load", function() {
-                if (this.track && this.track.albumid === loadAlbumId) {
-                    this._trackInfoUi.albumArt.queue(function(next) {
-                        this._trackInfoUi.albumArt.empty();
-                        
-                        img.css("opacity", 0).appendTo(this._trackInfoUi.albumArt).animate({opacity: 1}, 400);
-                        
-                        this._trackInfoUi.albumArt.animate({ height: img.outerHeight() }, 400);
-                       
-                        next();
-                    }.bind(this));
-                }
-            }.bind(this)).one("error", unknown.bind(this));
-        
-            img.attr("src", src);
-        } else {
-            setTimeout(unknown.bind(this), 1);
-            return;
-        }
     },
     
     togglePlay: function() {
