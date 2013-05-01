@@ -69,7 +69,7 @@
 
         <div id="player" data-bind="click: musicd.focusDefault">
             <div id="server-status">
-                <a href="#" class="log-out">Log out</a>
+                <a href="#" class="log-out" data-bind="click: musicd.logOut">Log out</a>
             </div>
         
             <div class="buttons">
@@ -121,7 +121,7 @@
             </p>
 
             <div class="details" data-bind="slideVisible: detailsVisible">
-                <div class="album-art" data-bind="template: { name: 'template-album-art', data: albumArt }"></div>
+                <div class="album-art" data-bind="template: { name: 'template-album-art', data: albumArt }, event: { dblclick: albumArtDoubleClick }"></div>
 
                 <div class="lyrics" data-bind="with: lyrics, offset: lyricsOffset, style: { maxHeight: lyricsMaxHeight }">
                     <div class="text" data-bind="text: lyrics"></div>

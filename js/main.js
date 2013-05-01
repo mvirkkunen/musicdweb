@@ -58,6 +58,12 @@ musicd.authenticate = function(api) {
     dialog.find("form").on("submit", auth);
 };
 
+musicd.logOut = function() {
+    document.cookie = "musicd-session=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
+
+    location.reload();
+};
+
 musicd.checkCompatibility = function() {
     var reasons = [];
 
@@ -126,8 +132,8 @@ $(function() {
     musicd.api = new musicd.APIClient(qs.server || "/", musicd.authenticate);
     
     var player = new musicd.Player();
-    var trackInfo = new musicd.TrackInfo(player.track);
     var search = new musicd.Search(player);
+    var trackInfo = new musicd.TrackInfo(player.track, search.search);
 
     // ugh
     musicd.linkToCurrentClick = function() {
@@ -141,45 +147,7 @@ $(function() {
     
     ko.applyBindings(search, $("#search")[0]);
     
-    $("#server-status .log-out").click(function(e) {
-        e.preventDefault();
-        
-        document.cookie = "user=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
-        document.cookie = "password=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
-        
-        location.reload();
-    });
-    
     musicd.loadQueryString(player, search);
-    
-    // Below this line there be temporary hacks - beware!
-    
-    //if (location.href.match(/[?&]albums\b/))
-    //    albumBrowser.open();
-    
-    $(".current-link").click(function(e) {
-        e.preventDefault();
-        
-        var args = [];
-        
-        args.push("search=" + encodeURIComponent(search.getSearch()));
-        
-        if (player.track)
-            args.push("trackid=" + player.track.id);
-
-        if (player.mode() != musicd.PlayerMode.NORMAL)
-            args.push("mode=" + muside.PlayerMode[player.mode()]);
-                    
-        if (player.state() == musicd.PlayerState.PLAY)
-            args.push("autoplay");
-        
-        location.href = "#" + args.join("&");
-    });
-    
-    $(".album-art").dblclick(function(e) {
-        if (player.track)
-            search.setSearch("albumid:" + player.track.albumid);
-    });
 });
 
 })();

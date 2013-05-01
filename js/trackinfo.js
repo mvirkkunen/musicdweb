@@ -1,9 +1,10 @@
 "use strict";
 
-musicd.TrackInfo = function(track) {
+musicd.TrackInfo = function(track, search) {
     var self = this;
 
     self.track = track;
+    self.search = search;
 
     self.detailsVisible = musicd.observableSetting("TrackInfo.detailsVisible");
 
@@ -49,6 +50,11 @@ musicd.TrackInfo = function(track) {
 musicd.TrackInfo.prototype = {
     toggleDetails: function() {
         this.detailsVisible(!this.detailsVisible());
+    },
+
+    albumArtDoubleClick: function() {
+        if (this.track())
+            this.search("albumid:" + this.track().albumid);
     }
 };
 
