@@ -17,13 +17,15 @@ musicd.VirtualList = function(cache, columns) {
 
     self._highlightedIndex = ko.observable(null);
     
+    self._inhibitRowHighlight = null;
+
     self._layout = {
         itemHeight: ko.observable(20),
         padderHeight: ko.observable(0),
         tableTop: ko.observable(0),
         rowsWidth: ko.observable(0),
         rowsOffset: ko.observable(0),
-        rowsScrollTop: ko.observable(0).extend({ throttle: 100 })
+        rowsScrollTop: ko.observable(0).extend({ throttle: 50 })
     };
 
     self._layout.rowsHeight = ko.computed(function() {
@@ -119,10 +121,11 @@ musicd.VirtualList.prototype = {
     },
 
     scrollToView: function() {
-        var scrollTop = this._layout.rowsScrollTop(),
-            scrollHeight = this._layout.rowsHeight(),
-            highlightedIndex = this._highlightedIndex(),
-            itemHeight = this._layout.itemHeight();
+        var self = this,
+            scrollTop = self._layout.rowsScrollTop(),
+            scrollHeight = self._layout.rowsHeight(),
+            highlightedIndex = self._highlightedIndex(),
+            itemHeight = self._layout.itemHeight();
         
         if ((highlightedIndex + 1) * itemHeight > scrollTop + scrollHeight)
             scrollTop = (highlightedIndex + 1) * itemHeight - scrollHeight;
@@ -130,7 +133,14 @@ musicd.VirtualList.prototype = {
         if (highlightedIndex * itemHeight < scrollTop)
             scrollTop = highlightedIndex * itemHeight;
         
-        this._layout.rowsScrollTop(scrollTop);
+        clearTimeout(self._inhibitRowHighlight);
+        self._inhibitRowHighlight = setTimeout(function() {
+            self._inhibitRowHighlight = null;
+        }, 200);
+
+        console.log(self._inhibitRowHighlight);
+
+        self._layout.rowsScrollTop(scrollTop);
     },
 
     scrollTo: function(index) {
@@ -143,7 +153,9 @@ musicd.VirtualList.prototype = {
     },
     
     _rowMouseOver: function(item) {
-        if (item)
+        musicd.log(this._inhibitRowHighlight);
+
+        if (item && !this._inhibitRowHighlight)
             this._highlightedIndex(item.index);
     },
 

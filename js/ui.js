@@ -2,19 +2,6 @@
 
 (function() {
 
-ko.extenders.integer = function(target) {
-    var computed = ko.computed({
-        read: target,
-        write: function(value) {
-            target(parseInt(value, 10));
-        }
-    });
-
-    computed(target());
-
-    return computed;
-};
-
 ko.bindingHandlers.slideVisible = {
     init: function(el, valueAccessor) {
         $(el).toggle(ko.utils.unwrapObservable(valueAccessor()));

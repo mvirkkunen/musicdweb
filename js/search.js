@@ -3,18 +3,18 @@
 musicd.Search = function(player) {
     var self = this;
 
-    this.cache = new musicd.ListCache(self._itemProvider.bind(self));
+    self.cache = new musicd.ListCache(self._itemProvider.bind(self));
 
-    this.player = player;
-    this.player.track.subscribe(this._playerTrackChange.bind(this));
-    this.player.trackSource = this;
+    self.player = player;
+    self.player.track.subscribe(self._playerTrackChange.bind(self));
+    self.player.trackSource = self;
 
-    this.search = ko.observable("");
-    this.searchFocus = ko.observable(true);
+    self.search = ko.observable("");
+    self.searchFocus = ko.observable(true);
     
-    this.totalResults = ko.observable(0);
+    self.totalResults = ko.observable(0);
     
-    this.vlist = new musicd.VirtualList(
+    self.vlist = new musicd.VirtualList(
         this.cache,
         [
             { name: "track", title: "#" },
@@ -24,11 +24,12 @@ musicd.Search = function(player) {
             { name: "duration", title: "Length", formatter: musicd.formatTime },
         ]);
     
-    this.vlist.itemActivate.subscribe(this._onItemActivate.bind(this));
+    self.vlist.itemActivate.subscribe(self._onItemActivate, self);
 
     ko.computed(function() {
         self.search();
-
+        
+        self.player.clearHistory();
         self.vlist.refresh();
     });
 };
@@ -74,17 +75,6 @@ musicd.Search.prototype = {
     
     _isValidSearch: function(text) {
         return !!text.match(/...|[\u3040-\u30FF]{2}|[\u3300-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F]/);
-    },
-    
-    _searchKeyUp: function() {
-        var text = this._search.val();
-        
-        if (text !== this._lastSearch) {
-            this._lastSearch = text;
-            
-            this._vlist.refresh();
-            this.player.clearHistory();
-        }
     },
     
     _itemProvider: function(offset, limit, reqTotal, callback) {
