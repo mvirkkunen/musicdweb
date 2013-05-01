@@ -71,4 +71,24 @@ musicd.objectEquals = function(a, b) {
     return true;
 };
 
+var settings;
+
+try {
+    settings = JSON.parse(localStorage.getItem("musicd.settings") || "{}");
+} catch (e) {
+    settings = {};
+}
+
+musicd.setting = function(key, defaultValue) {
+    var val = settings[key],
+        obs = ko.observable(val !== undefined ? val : defaultValue);
+
+    obs.subscribe(function(value) {
+        settings[key] = value;
+        localStorage.setItem("musicd.settings", JSON.stringify(settings));
+    });
+
+    return obs;
+};
+
 })();

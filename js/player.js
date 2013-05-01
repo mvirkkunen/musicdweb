@@ -62,7 +62,7 @@ musicd.Player = function(el) {
     self.state = ko.observable(musicd.Player.STOP);
     self.state.subscribe(self._stateChanged, self);
 
-    self.volume = musicd.observableSetting("Player.volume", 100);
+    self.volume = musicd.setting("Player.volume", 100);
     ko.computed(function() {
         self.audio.volume = self.volume() / 100;
     });
