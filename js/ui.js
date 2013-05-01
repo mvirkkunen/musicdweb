@@ -35,6 +35,23 @@ ko.bindingHandlers.fadeVisible = {
     }
 };
 
+ko.bindingHandlers.on = {
+    init: function(el, valueAccessor, allBindingsAccessor, viewModel) {
+        var el = $(el), events = valueAccessor() || {}, m;
+
+        $.each(events, function(ev, handler) {
+            if (!(m = ev.match(/^([^ ]+) (.+)/)))
+                return;
+
+            el.on(m[1], m[2], function() {
+                var args = $.makeArray(arguments);
+                args.unshift(ko.dataFor(this));
+                handler.apply(viewModel, args);
+            });
+        });
+    }
+};
+
 musicd.windowWidth = ko.observable(0);
 musicd.windowHeight = ko.observable(0);
 
@@ -44,40 +61,69 @@ function updateWindowSize() {
 }
 
 $(window).on("resize", updateWindowSize);
-$(updateWindowSize);
 
-var layoutObservable = ko.observable(null);
-layoutObservable.equalityComparer = null;
+var layoutSubscribable = new ko.subscribable();
 
 musicd.notifyLayoutChange = function() {
-    layoutObservable(null);
+    layoutSubscribable.notifySubscribers();
 }
 
-$(musicd.notifyLayoutChange);
+function offsetEqualityComparer(a, b) {
+    return a && b && (a.left == b.left) && (a.top == b.top);
+}
 
-ko.bindingHandlers.offset = {
-    init: function(el, valueAccessor) {
-        var offset = $(el).offset(), value = valueAccessor();
+function createLayoutBindingHandler(name, equalityComparer) {
+    ko.bindingHandlers[name] = {
+        init: function(el, valueAccessor) {
+            var value = valueAccessor();
+            el = $(el);
 
-        value(offset);
+            if (equalityComparer)
+                value.equalityComparer = equalityComparer;
 
-        layoutObservable.subscribe(function() {
-            var offset = $(el).offset(), current = value();
+            layoutSubscribable.subscribe(function() {
+                value(el[name]());
+            });
+        }
+    };
+};
 
-            if (offset.top != current.top || offset.left != current.left)
-                value(offset);
-        });
+$.fn.clientWidth = function(val) {
+    if (val === undefined)
+        return parseInt($(this).prop("clientWidth"), 10);
+
+    $(this).prop("clientWidth", val + "px");
+};
+
+createLayoutBindingHandler("offset", offsetEqualityComparer);
+createLayoutBindingHandler("clientWidth");
+createLayoutBindingHandler("outerHeight");
+
+ko.bindingHandlers.scrollTop = {
+    init: function(el, valueAccessor, allBindingsAccessor) {
+        var value = valueAccessor(), hysteresis = allBindingsAccessor().scrollTopHysteresis || 0;
+
+        if (ko.isWriteableObservable(value)) {        
+            value($(el).scrollTop());
+
+            $(el).on("scroll", function() {
+                var newValue = $(el).scrollTop();
+
+                if (Math.abs(value() - newValue) >= hysteresis)
+                    value($(el).scrollTop());
+            });
+        }
+    },
+
+    update: function(el, valueAccessor) {
+        $(el).scrollTop(ko.utils.unwrapObservable(valueAccessor()));
     }
 };
 
-$.fn.onmethod = function(type, selector, object, method, preventDefault) {
-    return this.on(type, selector, function(e) {
-        if (preventDefault)
-            e.preventDefault();
-
-        return object[method].call(object, e, this);
-    });
-};
+$(function() {
+    updateWindowSize();
+    musicd.notifyLayoutChange();
+});
 
 $.fn.pinHeight = function() {
     return $(this).each(function() {
@@ -92,61 +138,6 @@ $.fn.animateNaturalHeight = function(speed) {
 
         $(this).height(currentHeight).animate({ height: naturalHeight }, speed);
     });
-};
-
-var templateCache = {};
-
-function collectIdElements(el, map) {
-    var id = el.getAttribute("id") || el.getAttribute("data-id");
-
-    if (!id) {
-        var className = el.className;
-        if (className) {
-            var classBasedId = className.split(/ /)[0]
-                .replace(/-([a-z])/g, function(m) { return m[1].toUpperCase(); })
-
-            // Do not overwrite anything with class-based IDs
-            if (!map[classBasedId])
-                id = classBasedId;
-        }
-    }
-
-    if (id)
-        map[id] = $(el);
-
-    var child;
-    for (child = el.firstChild; child; child = child.nextSibling) {
-        if (child.nodeType == Node.ELEMENT_NODE)
-            collectIdElements(child, map);
-    }
-}
-
-$.fn.elementMap = function(id) {
-    var map = {};
-
-    this.each(function() {
-        collectIdElements(this, map);
-    });
-
-    return map;
-};
-
-$.template = function(id) {
-    var el;
-
-    if (!templateCache[id]) {
-        el = $("#" + id);
-        if (!el.length)
-            throw new Error("Template '" + id + "' not found");
-
-        templateCache[id] = el.html();
-    }
-
-    return $("<div>").html(templateCache[id]).find(">*");
-};
-
-$.fn.render = function(id) {
-    return this.append($.template(id));
 };
 
 musicd.stopPropagation = function(e) {

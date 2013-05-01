@@ -69,19 +69,19 @@ musicd.Player = function(el) {
     
     self.clearHistory();
     
-    this.stop();
+    self.stop();
     
     // Workaround for Chromium sometimes not sending the ended event
     // Perhaps related to
     // http://code.google.com/p/chromium/issues/detail?id=86830 ?
     
-    this._audioEndedHack = true;
+    self._audioEndedHack = true;
     setInterval(function() {
-        if (this._audioEndedHack && this.audio.currentTime > musicd.Player.TEN_YEARS) {
-            this._audioEndedHack = false;
-            this._audioEnded();
+        if (self._audioEndedHack && self.audio.currentTime > musicd.Player.TEN_YEARS) {
+            self._audioEndedHack = false;
+            self._audioEnded();
         }
-    }.bind(this), 1000);
+    }, 1000);
 };
 
 $.extend(musicd.Player, {

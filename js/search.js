@@ -1,61 +1,68 @@
 "use strict";
 
-musicd.Search = function(el, player) {
-    this.el = $(el);
+musicd.Search = function(player) {
+    var self = this;
+
+    this.cache = new musicd.ListCache(self._itemProvider.bind(self));
 
     this.player = player;
     this.player.track.subscribe(this._playerTrackChange.bind(this));
     this.player.trackSource = this;
+
+    this.search = ko.observable("");
+    this.searchFocus = ko.observable(true);
+
+    //this._search = this.el.find(".search input");
+    //this._search.val("").focus();
+    //musicd.defaultFocusElement = this._search;
+    //this._lastSearch = "";
     
-    this._search = this.el.find(".search input");
-    this._search.val("").focus();
-    musicd.defaultFocusElement = this._search;
-    this._lastSearch = "";
+    //this._totalResults = this.el.find(".total-results");
+    this.totalResults = ko.observable(0);
     
-    this._totalResults = this.el.find(".total-results");
-    
-    this._search.on("keyup search", this._searchKeyUp.bind(this));
-    
-    this._vlist = new musicd.VirtualList(this.el.find(".track-list"),
-        this._itemProvider.bind(this),
+    //this._search.on("keyup search", this._searchKeyUp.bind(this));
+    this.vlist = new musicd.VirtualList(
+        this.cache,
         [
-            {name: "track", title: "#"},
-            {name: "title", title: "Title"},
-            {name: "artist", title: "Artist"},
-            {name: "album", title: "Album"},
-            {name: "duration", title: "Length", formatter: musicd.formatTime},
+            { name: "track", title: "#" },
+            { name: "title", title: "Title" },
+            { name: "artist", title: "Artist" },
+            { name: "album", title: "Album" },
+            { name: "duration", title: "Length", formatter: musicd.formatTime },
         ]);
     
-    this.el.on("click dblclick", function() {
-        musicd.defaultFocusElement = this._search;
-        musicd.focusDefault();
-    }.bind(this));
-    this._search.onmethod("keydown", null, this._vlist, "handleKeyEvent");
-    this._vlist.onItemActivate.addListener(this._onItemActivate.bind(this));
+    //this._search.onmethod("keydown", null, this._vlist, "handleKeyEvent");
+    this.vlist.itemActivate.subscribe(this._onItemActivate.bind(this));
+
+    ko.computed(function() {
+        self.search();
+
+        self.vlist.refresh();
+    });
 };
 
 musicd.Search.prototype = {
     // TrackSource methods
     
     getAdjacentTrack: function(id, delta, callback) {
-        var index = this._vlist.getItemIndex(id);
+        var index = this.cache.getItemIndex(id);
         
         if (index == -1) {
             callback(null);
             return;
         }
         
-        this._vlist.getItemByIndex(index + delta, function(item) {
+        this.cache.getItemByIndex(index + delta, function(item) {
             callback(item);
         });
     },
     
     getFirstTrack: function(callback) {
-        this._vlist.getItemByIndex(0, callback);
+        this.cache.getItemByIndex(0, callback);
     },
     
     getRandomTrack: function(callback) {
-        this._vlist.getRandomItem(callback);
+        this.cache.getRandomItem(callback);
     },
     
     // Search methods
@@ -70,23 +77,11 @@ musicd.Search.prototype = {
     },
     
     _playerTrackChange: function(track) {
-        this._vlist.setCurrentItem(track ? track.id : null);
+        this.vlist.currentId(track ? track.id : null);
     },
     
     _isValidSearch: function(text) {
-        return true;
-        
         return !!text.match(/...|[\u3040-\u30FF]{2}|[\u3300-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F]/);
-    },
-    
-    setSearch: function(text, callback) {
-        this._search.val(text);
-        this._lastSearch = text;
-        this._vlist.refresh(callback);
-    },
-    
-    getSearch: function() {
-        return this._search.val();
     },
     
     _searchKeyUp: function() {
@@ -101,17 +96,16 @@ musicd.Search.prototype = {
     },
     
     _itemProvider: function(offset, limit, reqTotal, callback) {
-        var text = this._search.val();
-
-        var args = {
-            sort: "album,track,title",
-            offset: offset,
-            limit: limit,
-            total: reqTotal ? 1 : null
-        };
+        var self = this,
+            text = self.search(),
+            args = {
+                sort: "album,track,title",
+                offset: offset,
+                limit: limit,
+                total: reqTotal ? 1 : null
+            };
         
         // TODO: remove when parsing implemented on server side
-        
         var m;
         if (m = text.match(/^albumid:(\d+)$/i))
             args.albumid = m[1];
@@ -124,17 +118,21 @@ musicd.Search.prototype = {
             args,
             function(res) {
                 if (offset == 0)
-                    this._totalResults.text(res.total || 0);
+                    self.totalResults(res.total || 0);
                 
                 callback((offset == 0 ? (res.total || 0) : null), res.tracks);
-            }.bind(this)
+            }
         );
     },
     
     _onItemActivate: function(track) {
         this.player.track(track);
-        
-        this._vlist.clearSelection();
-        this._vlist.setItemSelected(track.id, true);
+
+        this.vlist.selectedIds([track.id])
+    },
+
+    _rootClick: function() {
+        musicd.defaultFocusElement = this._search;
+        this.searchFocus(true);
     }
 };

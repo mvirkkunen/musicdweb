@@ -192,7 +192,9 @@ musicd.loadQueryString = function(player, search) {
 $(function() {
     musicd.checkCompatibility();
     
-    musicd.api = new musicd.APIClient("/", musicd.authenticate);
+    var m = location.href.match(/[?&]server=([^&]+)/);
+
+    musicd.api = new musicd.APIClient(m ? decodeURIComponent(m[1]) : "/", musicd.authenticate);
     
     var player = new musicd.Player();
     ko.applyBindings(player, $("#player")[0]);
@@ -200,7 +202,8 @@ $(function() {
     var trackInfo = new musicd.TrackInfo(player.track);
     ko.applyBindings(trackInfo, $("#track-info")[0]);
     
-    var search = new musicd.Search("#search", player);
+    var search = new musicd.Search(player);
+    ko.applyBindings(search, $("#search")[0]);
     
     /*var albumBrowser = new musicd.AlbumBrowser("#album-browser", search);
     

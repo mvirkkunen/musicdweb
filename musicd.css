@@ -346,7 +346,7 @@ body {
 }
 
 .track-list .track { width: 20px; }
-.track-list .title { width: 30%; }
+/*.track-list .title { width: 30%; }*/
 .track-list .artist { width: 20%; }
 .track-list .album { width: 20%; }
 .track-list .duration { width: 50px; text-align: right; }
