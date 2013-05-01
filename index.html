@@ -65,15 +65,7 @@
                 <a href="#" class="current-link">Link to current</a>
             </div>
 
-            <div class="seek"
-                 data-bind="timeslider: {
-                                value: seekSliderTime,
-                                animate: 'fast',
-                                range: 'min',
-                                min: 0,
-                                max: duration,
-                                disabled: notSeekable,
-                                start: _seekSliderStart.bind($data) }"></div>
+            <div class="seek" data-bind="timeslider: { timeValue: currentTime, max: duration, disabled: notSeekable }"></div>
             <div class="volume" data-bind="slider: { value: volume, orientation: 'vertical', min: 0, max: 100 }"></div>
         </div>
         

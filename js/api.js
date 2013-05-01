@@ -55,6 +55,7 @@ musicd.APIClient.prototype = {
     getTrackURL: function(track, seek) {
         var url = this._urlPrefix + "open?id=" + track.id;
         
+        seek = Math.floor(seek);
         if (seek)
             url += "&seek=" + seek;
         

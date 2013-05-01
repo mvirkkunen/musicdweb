@@ -4,7 +4,7 @@ musicd.Search = function(el, player) {
     this.el = $(el);
 
     this.player = player;
-    this.player.onTrackChange.addListener(this._playerTrackChange.bind(this));
+    this.player.track.subscribe(this._playerTrackChange.bind(this));
     this.player.trackSource = this;
     
     this._search = this.el.find(".search input");

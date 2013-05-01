@@ -7,7 +7,9 @@ musicd.Player = function(el) {
     window.debugaudio = self.audio;
     self.audio.addEventListener("timeupdate", self._audioTimeUpdate.bind(self), true);
     self.audio.addEventListener("ended", self._audioEnded.bind(self), true);
+
     self.audioSrc = ko.observable(null);
+    self.audioSrc.equalityComparer = null;
     self.audioSrc.subscribe(function(val) {
         self._audioEndedHack = true;
 
@@ -15,11 +17,9 @@ musicd.Player = function(el) {
         self.audio.src = val;
         self.audioTime(0);
     });
-
-    self.onAudioEnd = new musicd.Event();
-    self.onStateChange = new musicd.Event();
-    self.onTrackChange = new musicd.Event();
     
+    self.trackSource = null;
+
     self.playMode = ko.observable(musicd.Player.NORMAL).extend({ integer: true });
     self.playMode.subscribe(function(val) {
         self.clearHistory();
@@ -27,7 +27,6 @@ musicd.Player = function(el) {
         if (self.playMode() == musicd.Player.REPEAT_TRACK && self.track())
             self._pushHistory(self.track());
     });
-    self.trackSource = null;
     
     self.track = ko.observable(null);
     self.track.subscribe(self._trackChanged, self);
@@ -39,14 +38,17 @@ musicd.Player = function(el) {
     });
     
     self.audioTime = ko.observable(0);
-    self.pendingSeek = ko.observable(null);
     self.currentStart = ko.observable(0);
+    self.pendingSeek = ko.observable(false);
 
-    self.currentTime = ko.computed(function() {
-        if (self.pendingSeek() !== null)
-            return self.pendingSeek();
-        else
-            return self.currentStart() + self.audioTime();
+    self.currentTime = ko.computed({
+        read: function() {
+            if (self.pendingSeek())
+                return self.currentStart();
+            else
+                return self.currentStart() + self.audioTime();
+        },
+        write: self._currentTimeChanged.bind(self)
     });
     self.currentTimeString = ko.computed(function() {
         var track = self.track(), time = Math.floor(self.currentTime());
@@ -57,9 +59,6 @@ musicd.Player = function(el) {
             : "--:-- / --:--";
     });
 
-    self.seekSliderTime = ko.observable(0);
-    self.seekSliderTime.subscribe(self.seekTo, self, "manualChange");
-
     self.state = ko.observable(musicd.Player.STOPPED);
     self.state.subscribe(self._stateChanged, self);
 
@@ -69,8 +68,6 @@ musicd.Player = function(el) {
     });
     
     self.clearHistory();
-    
-    this._seekSliderMoving = false;
     
     this.stop();
     
@@ -113,9 +110,6 @@ $.extend(musicd.Player, {
 musicd.Player.prototype = {
     _audioTimeUpdate: function() {
         this.audioTime(this.audio.currentTime);
-
-        if (!this._seekSliderMoving)
-            this.seekSliderTime(this.currentTime());
     },
 
     _audioEnded: function() {
@@ -123,12 +117,6 @@ musicd.Player.prototype = {
             this.currentTime(0);
         else
             this.next();
-        
-        this.onAudioEnd.fire();
-    },
-
-    _seekSliderStart: function() {
-        this._seekSliderMoving = true;
     },
 
     _stateChanged: function() {
@@ -136,9 +124,9 @@ musicd.Player.prototype = {
 
         if (state == musicd.Player.PLAYING) {
             if (self.track()) {
-                if (self.pendingSeek() !== null) {
-                    this.audioSrc(musicd.api.getTrackURL(self.track(), this.pendingSeek()));
-                    self.pendingSeek(null);
+                if (self.pendingSeek()) {
+                    self.audioSrc(musicd.api.getTrackURL(self.track(), self.currentStart()));
+                    self.pendingSeek(false);
                 }
             
                 self.audio.play();
@@ -152,9 +140,7 @@ musicd.Player.prototype = {
         $("#favicon").attr("href", "img/icon-" + ["stop", "play", "pause"][state] + ".png");
         
         if (state == musicd.Player.STOPPED)
-            self.seekTo(0);
-        
-        self.onStateChange.fire(state);
+            self.currentTime(0);
     },
     
     _trackChanged: function() {
@@ -167,30 +153,43 @@ musicd.Player.prototype = {
         
         self.currentStart(0);
         self.audioTime(0);
-        self.pendingSeek(null);
+        self.pendingSeek(false);
         self.audioSrc(musicd.api.getTrackURL(track));
         
         self.play();
-        
-        self.onTrackChange.fire(track);
     },
 
     _pushHistory: function(track) {
         this._historyIndex++;
-        
+
         if (this._historyIndex != this._history.length)
             this._history = this._history.slice(0, this._historyIndex);
-            
+
         this._history.push(track);
-        
+
         var overflow = this._history.length - musicd.Player.MAX_HISTORY;
         if (overflow > 0) {
             this._historyIndex -= overflow;
             this._history = this._history.slice(overflow);
         }
+    },
 
-        musicd.log("History: ", track);
-        console.trace();
+    clearHistory: function() {
+        this._history = [];
+        this._historyIndex = -1;
+    },
+
+    _currentTimeChanged: function(seconds) {
+        var self = this;
+
+        self.currentStart(seconds);
+
+        if (self.state() == musicd.Player.PLAYING) {
+            self.audioSrc(musicd.api.getTrackURL(self.track(), seconds));
+            self.audio.play();
+        } else {
+            self.pendingSeek(true);
+        }
     },
     
     togglePlay: function() {
@@ -263,15 +262,6 @@ musicd.Player.prototype = {
             });
         }
     },
-    
-    rewindOrPrev: function() {
-        var self = this;
-
-        if (self.currentTime() < 5)
-            self.prev();
-        else
-            self.seekTo(0);
-    },
 
     prev: function() {
         this._playAdjacentTrack(-1);
@@ -281,24 +271,12 @@ musicd.Player.prototype = {
         this._playAdjacentTrack(1);
     },
 
-    seekTo: function(seconds) {
+    rewindOrPrev: function() {
         var self = this;
 
-        this._seekSliderMoving = false;
-
-        self.currentStart(seconds);
-        
-        if (self.state() == musicd.Player.PLAYING) {
-            self.audioSrc(musicd.api.getTrackURL(self.track(), seconds));
-            self.audio.play();
-        } else {
-            self.pendingSeek(seconds);
-            self.seekSliderTime(seconds);
-        }
-    },
-    
-    clearHistory: function() {
-        this._history = [];
-        this._historyIndex = -1;
+        if (self.currentTime() < 5)
+            self.prev();
+        else
+            self.currentTime(0);
     }
 };

@@ -225,7 +225,7 @@ $(function() {
     if (location.href.match(/[?&]albums\b/))
         albumBrowser.open();
     
-    player.onStateChange.addListener(function(state) {
+    player.state.subscribe(function(state) {
         window.postMessage({
             type: "STATE_CHANGE",
             text: state == musicd.Player.PLAYING ? "play" : "pause"

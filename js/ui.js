@@ -164,6 +164,8 @@ musicd.focusDefault = function() {
 $.widget("ui.timeslider", $.ui.slider, {
     _create: function() {
         this._superApply(arguments);
+
+        this._setOptions({ min: 0, step: 0.1, range: "min", animate: "fast" });
         
         this.element.append(this._tsTime =
             $("<div>").addClass("slider-time")
@@ -224,18 +226,28 @@ kojqui.bindingFactory.create({
     name: "timeslider",
     options: ["animate", "disabled", "max", "min", "orientation", "range", "step", "value", "values"],
     events: ["create", "start", "slide", "change", "stop"],
-    postInit: function (element, valueAccessor) {
-        var value = valueAccessor();
+    postInit: function (el, valueAccessor) {
+        var value = valueAccessor(), dragging = false, jqel = $(el);
 
-        if (ko.isWriteableObservable(value.value)) {
-            $(element).on("timesliderstop.ko", function (ev, ui) {
-                value.value(ui.value);
-                value.value.notifySubscribers(ui.value, "manualChange");
+        if (value.timeValue) {
+            jqel.on("timesliderstart.ko", function(ev, ui) {
+                dragging = true;
+            }).on("timesliderstop.ko", function(ev, ui) {
+                dragging = false;
+
+                value.timeValue(ui.value);
+            });
+
+            value.timeValue.subscribe(function(newValue) {
+                newValue = Math.floor(newValue);
+
+                if (!dragging && jqel.timeslider("value") != newValue)
+                    jqel.timeslider("value", Math.floor(newValue));
             });
         }
 
-        ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
-            $(element).off(".ko");
+        ko.utils.domNodeDisposal.addDisposeCallback(el, function () {
+            jqel.off(".ko");
         });
     }
 });
