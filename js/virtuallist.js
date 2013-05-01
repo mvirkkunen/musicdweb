@@ -1,5 +1,7 @@
 "use strict";
 
+(function() {
+
 musicd.VirtualList = function(cache, columns) {
     var self = this;
 
@@ -87,8 +89,6 @@ musicd.VirtualList.prototype = {
             offset = Math.max(0, visible.offset - this._drawExtraItems),
             limit = Math.min(visible.limit + this._drawExtraItems*2, this._cache.totalCount || 0);
 
-        musicd.log("draw!" + new Date + " " + visible.offset + " " + visible.limit);
-
         this._layout.tableTop(offset * this._layout.itemHeight());
         this._layout.padderHeight(this._layout.itemHeight() * (this._cache.totalCount || 0));
         
@@ -171,3 +171,5 @@ musicd.VirtualList.prototype = {
         return col.formatter ? col.formatter(value) : value;
     }
 };
+
+})();

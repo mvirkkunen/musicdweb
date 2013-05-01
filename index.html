@@ -5,11 +5,13 @@
         <title>musicd</title>
         <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.2/css/lightness/jquery-ui-1.10.2.custom.min.css" />
         <link rel="stylesheet" type="text/css" href="musicd.css" />
-        <link id="favicon" rel="shortcut icon" type="image/png" href="img/icon-stop.png" />
+        <link id="favicon" rel="shortcut icon" type="image/png" data-bind="attr: { href: 'img/icon-' + musicd.PlayerState[$data].toLowerCase() + '.png' }" />
         <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/2.2.1/knockout-min.js"></script>
+        <!--<script src="//cdnjs.cloudflare.com/ajax/libs/knockout/2.2.1/knockout-min.js"></script>-->
+        <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.debug.js"></script>
         <script src="js/knockout-jqueryui.min.js"></script>
+        <script src="js/utils.js"></script>
         <script src="js/main.js"></script>
         <script src="js/api.js"></script>
         <script src="js/ui.js"></script>
@@ -50,7 +52,7 @@
                                 clientWidth: _layout.rowsWidth,
                                 height: _layout.rowsHeight,
                                 scrollTop: _layout.rowsScrollTop,
-                                scrollTopHysteresis: 0,
+                                scrollTopHysteresis: 100,
                                 style: { height: _layout.rowsHeight() + 'px' }">
                     <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
                         <table data-bind="style: { top: _layout.tableTop() + 'px' }">
@@ -71,7 +73,7 @@
             </div>
         
             <div class="buttons">
-                <button class="toggle-play" accesskey="p" title="Play/pause (p)" data-bind="click: togglePlay, text: (state == musicd.Player.PLAYING ? '▮▮' : '▶')"></button>
+                <button class="toggle-play" accesskey="p" title="Play/pause (p)" data-bind="click: togglePlay, text: (state == musicd.PlayerState.PLAY ? '▮▮' : '▶')"></button>
                 <button class="stop" accesskey="s" title="Stop (s)" data-bind="click: stop">■</button>
                 <button class="prev" accesskey="b" title="Previous (b)" data-bind="click: rewindOrPrev">◀◀</button>
                 <button class="next" accesskey="n" title="Next (n)" data-bind="click: next">▶▶</button>
@@ -83,7 +85,7 @@
                 
                 <label>
                     Play mode: 
-                    <select data-bind="value: playMode">
+                    <select data-bind="value: mode">
                         <option value="0">Normal</option>
                         <option value="1">Random</option>
                         <option value="2">Repeat list</option>
@@ -91,7 +93,7 @@
                     </select>
                 </label>
                 
-                <a href="#" class="current-link">Link to current</a>
+                <a href="#" data-bind="click: musicd.linkToCurrentClick">Link to current</a>
             </div>
 
             <div class="seek" data-bind="timeslider: { timeValue: currentTime, max: duration, disabled: notSeekable }"></div>
@@ -135,14 +137,14 @@
         </div>
         
         <div id="lists">
-            <div id="search" data-bind="click: _rootClick">
+            <div id="search" data-bind="click: _rootClick, event: { keydown: vlist.handleKeyEvent.bind(vlist) }">
                 <h2>
                     Songs on the server - 
                     Total results: <strong data-bind="text: totalResults"></strong>
                 </h2>
                 
                 <div class="search">
-                    <input type="text" data-bind="value: search, valueUpdate: 'keyup', hasfocus: searchFocus, event: { keydown: vlist.handleKeyEvent.bind(vlist) }" />
+                    <input type="search" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" />
                 </div>
                 
                 <div class="track-list" data-bind="template: { name: 'template-virtual-list', data: vlist }"></div>

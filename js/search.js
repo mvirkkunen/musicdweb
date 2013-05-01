@@ -11,16 +11,9 @@ musicd.Search = function(player) {
 
     this.search = ko.observable("");
     this.searchFocus = ko.observable(true);
-
-    //this._search = this.el.find(".search input");
-    //this._search.val("").focus();
-    //musicd.defaultFocusElement = this._search;
-    //this._lastSearch = "";
     
-    //this._totalResults = this.el.find(".total-results");
     this.totalResults = ko.observable(0);
     
-    //this._search.on("keyup search", this._searchKeyUp.bind(this));
     this.vlist = new musicd.VirtualList(
         this.cache,
         [
@@ -31,7 +24,6 @@ musicd.Search = function(player) {
             { name: "duration", title: "Length", formatter: musicd.formatTime },
         ]);
     
-    //this._search.onmethod("keydown", null, this._vlist, "handleKeyEvent");
     this.vlist.itemActivate.subscribe(this._onItemActivate.bind(this));
 
     ko.computed(function() {

@@ -20,11 +20,11 @@ musicd.Player = function(el) {
     
     self.trackSource = null;
 
-    self.playMode = ko.observable(musicd.Player.NORMAL).extend({ integer: true });
-    self.playMode.subscribe(function(val) {
+    self.mode = ko.observable(musicd.Player.NORMAL).extend({ integer: true });
+    self.mode.subscribe(function(val) {
         self.clearHistory();
         
-        if (self.playMode() == musicd.Player.REPEAT_TRACK && self.track())
+        if (self.mode() == musicd.Player.REPEAT_TRACK && self.track())
             self._pushHistory(self.track());
     });
     
@@ -59,7 +59,7 @@ musicd.Player = function(el) {
             : "--:-- / --:--";
     });
 
-    self.state = ko.observable(musicd.Player.STOPPED);
+    self.state = ko.observable(musicd.Player.STOP);
     self.state.subscribe(self._stateChanged, self);
 
     self.volume = musicd.observableSetting("Player.volume", 100);
@@ -85,27 +85,13 @@ musicd.Player = function(el) {
 };
 
 $.extend(musicd.Player, {
-    STOPPED: 0,
-    PLAYING: 1,
-    PAUSED: 2,
-    
-    NORMAL: 0,
-    RANDOM: 1,
-    REPEAT_LIST: 2,
-    REPEAT_TRACK: 3,
-    
     MAX_HISTORY: 100,
     
-    TEN_YEARS: 315360000, // seconds
-    
-    createDummyAlbumArt: function(track) {
-        var div = $("<div>").addClass("dummy-album-art").append(
-            $("<h3>").text(track.album || "Untitled album"),
-            $("<p>").text(track.artist || "Unknown artist"));
-        
-        return div;
-    }
+    TEN_YEARS: 315360000 // seconds
 });
+
+musicd.PlayerState = musicd.makeEnum("STOP", "PLAY", "PAUSE");
+musicd.PlayerMode = musicd.makeEnum("NORMAL", "RANDOM", "REPEAT_LIST", "REPEAT_TRACK");
 
 musicd.Player.prototype = {
     _audioTimeUpdate: function() {
@@ -113,16 +99,16 @@ musicd.Player.prototype = {
     },
 
     _audioEnded: function() {
-        if (this.playMode() == musicd.Player.REPEAT_TRACK)
+        if (this.mode() == musicd.PlayerMode.REPEAT_TRACK)
             this.currentTime(0);
         else
             this.next();
     },
 
-    _stateChanged: function() {
-        var self = this, state = self.state();
+    _stateChanged: function(state) {
+        var self = this;
 
-        if (state == musicd.Player.PLAYING) {
+        if (state == musicd.PlayerState.PLAY) {
             if (self.track()) {
                 if (self.pendingSeek()) {
                     self.audioSrc(musicd.api.getTrackURL(self.track(), self.currentStart()));
@@ -137,18 +123,16 @@ musicd.Player.prototype = {
             self.audio.pause();
         }
         
-        $("#favicon").attr("href", "img/icon-" + ["stop", "play", "pause"][state] + ".png");
-        
-        if (state == musicd.Player.STOPPED)
+        if (state == musicd.PlayerState.STOP)
             self.currentTime(0);
     },
     
-    _trackChanged: function() {
-        var self = this, track = self.track();
+    _trackChanged: function(track) {
+        var self = this;
 
         self.stop();
         
-        if (!self._noHistory && self.playMode() == musicd.Player.RANDOM)
+        if (!self._noHistory && self.mode() == musicd.PlayerMode.RANDOM)
             this._pushHistory(track);
         
         self.currentStart(0);
@@ -184,7 +168,7 @@ musicd.Player.prototype = {
 
         self.currentStart(seconds);
 
-        if (self.state() == musicd.Player.PLAYING) {
+        if (self.state() == musicd.PlayerState.PLAY) {
             self.audioSrc(musicd.api.getTrackURL(self.track(), seconds));
             self.audio.play();
         } else {
@@ -193,21 +177,21 @@ musicd.Player.prototype = {
     },
     
     togglePlay: function() {
-        this.state(this.state() == musicd.Player.PLAYING
-            ? musicd.Player.PAUSED
-            : musicd.Player.PLAYING);
+        this.state(this.state() == musicd.PlayerState.PLAY
+            ? musicd.PlayerState.PAUSE
+            : musicd.PlayerState.PLAY);
     },
 
     pause: function() {
-        this.state(musicd.Player.PAUSED);
+        this.state(musicd.PlayerState.PAUSE);
     },
 
     play: function() {
-        this.state(musicd.Player.PLAYING);
+        this.state(musicd.PlayerState.PLAY);
     },
 
     stop: function() {
-        this.state(musicd.Player.STOPPED);
+        this.state(musicd.PlayerState.STOP);
     },
     
     playFirst: function() {
@@ -216,7 +200,7 @@ musicd.Player.prototype = {
         if (!self.trackSource)
             return;
         
-        self.trackSource[(self.playMode() == musicd.Player.RANDOM)
+        self.trackSource[(self.mode() == musicd.PlayerMode.RANDOM)
             ? "getRandomTrack"
             : "getFirstTrack"]
                 (function(track) {
@@ -233,7 +217,7 @@ musicd.Player.prototype = {
         if (!self.trackSource || !self.track())
             return;
         
-        if (self.playMode() == musicd.Player.RANDOM) {
+        if (self.mode() == musicd.PlayerMode.RANDOM) {
             if (self._historyIndex + delta >= self._history.length) {
                 self.trackSource.getRandomTrack(function(track) {
                     if (track) {
@@ -254,7 +238,7 @@ musicd.Player.prototype = {
                 if (track) {
                     self.track(track);
                     self.play();
-                } else if (delta < 0 || self.playMode() == musicd.Player.REPEAT_LIST) {
+                } else if (delta < 0 || self.mode() == musicd.PlayerMode.REPEAT_LIST) {
                     self.playFirst();
                 } else {
                     self.stop();

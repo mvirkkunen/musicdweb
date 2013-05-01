@@ -27,7 +27,7 @@ musicd.TrackInfo = function(track) {
         if (track) {
             self.lyricsLoading(true);
 
-            musicd.api.call(null, "track/lyrics", { id: track.id }, function(r) {
+            musicd.api.call("lyrics", "track/lyrics", { id: track.id }, function(r) {
                 self.lyricsLoading(false);
                 self.lyrics(r);
             }, function (xhr) {

@@ -125,6 +125,16 @@ $(function() {
     musicd.notifyLayoutChange();
 });
 
+ko.bindingHandlers.widget = {
+    init: function(el, valueAccessor) {
+        var value = valueAccessor();
+
+        return ko.bindingHandlers.template.init(el, function() { return { name: value.template, data: value }; });
+    },
+
+    update: ko.bindingHandlers.template.update
+};
+
 $.fn.pinHeight = function() {
     return $(this).each(function() {
         $(this).css("height", $(this).height());
@@ -210,8 +220,6 @@ $.widget("ui.timeslider", $.ui.slider, {
         }).show();
     }
 });
-
-// from kojqui
 
 kojqui.bindingFactory.create({
     name: "timeslider",

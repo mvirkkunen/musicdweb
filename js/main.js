@@ -1,94 +1,13 @@
 "use strict";
 
-window.musicd = {};
+(function() {
 
-musicd.log = function() {
-    if (console.log)
-        console.log.apply(console, arguments);
-};
-
-$.request = $["\x61\x6a\x61\x78"]; // avoid the a-word
-$["\x61\x6a\x61\x78Setup"]({
+var theAWord = "\x61\x6a\x61\x78";
+$.request = $[theAWord];
+$[theAWord + "Setup"]({
    xhrFields: { withCredentials: true},
    crossDomain: true
 });
-
-Number.prototype.pad = function(length) {
-    var s = "" + this;
-    while (s.length < length)
-        s = "0" + s;
-    
-    return s;
-};
-
-musicd.formatTime = function(time, lengthHint) {
-    if (!time)
-        return "00:00";
-    
-    var s = (Math.floor((time % 3600) / 60).pad(2) + ":" +
-        Math.floor(time % 60).pad(2));
-    
-    if ((lengthHint || time) >= 3600)
-        s = Math.floor(time / 3600).pad(2) + ":" + s;
-    
-    return s;
-}
-
-musicd.parseQueryString = function(qs) {
-    var r = {};
-    
-    qs.split(/&/).forEach(function(pair) {
-        var p = pair.indexOf("=");
-        if (p == -1)
-            r[decodeURIComponent(pair)] = true;
-        else
-            r[decodeURIComponent(pair.substr(0, p))] = decodeURIComponent(pair.substr(p + 1));
-    });
-    
-    return r;
-};
-
-musicd.objectEquals = function(a, b) {
-    if (!!a != !!b)
-        return false;
-        
-    var key;
-    for (key in a) {
-        if (a[key] !== b[key])
-            return false;
-    }
-    
-    for (key in b) {
-        if (a[key] !== b[key])
-            return false;
-    }
-    
-    return true;
-};
-
-musicd.Event = function Event() {
-    
-};
-
-musicd.Event.prototype = {
-    addListener: function(func) {
-        if (!this._listeners)
-            this._listeners = [];    
-            
-        this._listeners.push(func);
-    },
-    
-    fire: function() {
-        if (!this._listeners)
-            return;
-            
-        var args = arguments;
-        
-        this._listeners.forEach(function(func) {
-            func.apply(this, args);
-        }, this);
-    }
-};
 
 musicd.shader = {
     show: function() {
@@ -158,28 +77,20 @@ musicd.checkCompatibility = function() {
 musicd.loadQueryString = function(player, search) {
     var m = location.href.match(/#(.+)$/);
     if (m) {
-        var initial = musicd.parseQueryString(m[1]);
-        
-        switch (initial.mode) {
-            case "random":
-                player.setPlayMode(musicd.Player.RANDOM);
-                break;
-            case "repeatlist":
-                player.setPlayMode(musicd.Player.REPEAT_LIST);
-                break;
-            case "repeattrack":
-                player.setPlayMode(musicd.Player.REPEAT_TRACK);
-                break;
-        }
-        
-        if (initial.search) {
-            search.setSearch(initial.search, function() {
-                if (initial.trackid) {
-                    var track = search.getAdjacentTrack(parseInt(initial.trackid, 10), 0, function(track) {
+        var args = musicd.parseQueryString(m[1]);
+
+        if (args.mode)
+            player.mode(musicd.PlayerMode[args.mode]);
+
+        if (args.search) {
+            // TODO: This doesn't work
+            search.search(args.search, function() {
+                if (args.trackid) {
+                    var track = search.getAdjacentTrack(parseInt(args.trackid, 10), 0, function(track) {
                         if (track) {
-                            player.setTrack(track);
+                            player.track(track);
                             
-                            if (initial.autoplay)
+                            if (initial.args)
                                 player.play();
                         }
                     });
@@ -189,28 +100,46 @@ musicd.loadQueryString = function(player, search) {
     }
 };
 
+musicd.serializeState = function(player, search) {
+    var args = [];
+
+    args.push("search=" + encodeURIComponent(search.search()));
+
+    if (player.track())
+        args.push("trackid=" + player.track().id);
+
+    if (player.mode() != musicd.PlayerMode.NORMAL)
+        args.push("mode=" + muside.PlayerMode[player.mode()]);
+
+    if (player.state() == musicd.PlayerState.PLAY)
+        args.push("autoplay");
+
+    return args.join("&");
+};
+
 $(function() {
     musicd.checkCompatibility();
     
-    var m = location.href.match(/[?&]server=([^&]+)/);
+    var m = location.href.match(/\?([^#]+)/),
+        qs = m ? musicd.parseQueryString(m[1]) : {};
 
-    musicd.api = new musicd.APIClient(m ? decodeURIComponent(m[1]) : "/", musicd.authenticate);
+    musicd.api = new musicd.APIClient(qs.server || "/", musicd.authenticate);
     
     var player = new musicd.Player();
-    ko.applyBindings(player, $("#player")[0]);
-
     var trackInfo = new musicd.TrackInfo(player.track);
+    var search = new musicd.Search(player);
+
+    // ugh
+    musicd.linkToCurrentClick = function() {
+        location.href = "#" + musicd.serializeState(player, search);
+    };
+
+    ko.applyBindings(player, $("#player")[0]);
+    ko.applyBindings(player.state, $("#favicon")[0]);
+
     ko.applyBindings(trackInfo, $("#track-info")[0]);
     
-    var search = new musicd.Search(player);
     ko.applyBindings(search, $("#search")[0]);
-    
-    /*var albumBrowser = new musicd.AlbumBrowser("#album-browser", search);
-    
-    $(".buttons .albums").click(function(e) {
-        e.stopPropagation();
-        albumBrowser.open();
-    });*/
     
     $("#server-status .log-out").click(function(e) {
         e.preventDefault();
@@ -225,20 +154,8 @@ $(function() {
     
     // Below this line there be temporary hacks - beware!
     
-    if (location.href.match(/[?&]albums\b/))
-        albumBrowser.open();
-    
-    player.state.subscribe(function(state) {
-        window.postMessage({
-            type: "STATE_CHANGE",
-            text: state == musicd.Player.PLAYING ? "play" : "pause"
-        }, "*");
-    });
-    
-    window.addEventListener("message", function(e) {
-        if (e.data.type == "TOGGLE_PLAY")
-            player.togglePlay();
-    });
+    //if (location.href.match(/[?&]albums\b/))
+    //    albumBrowser.open();
     
     $(".current-link").click(function(e) {
         e.preventDefault();
@@ -249,15 +166,11 @@ $(function() {
         
         if (player.track)
             args.push("trackid=" + player.track.id);
-            
-        if (player.playMode == musicd.Player.RANDOM)
-            args.push("mode=random");
-        else if (player.playMode == musicd.Player.REPEAT_LIST)
-            args.push("mode=repeatlist");
-        else if (player.playMode == musicd.Player.REPEAT_TRACK)
-            args.push("mode=repeattrack");
-        
-        if (player.state == musicd.Player.PLAYING)
+
+        if (player.mode() != musicd.PlayerMode.NORMAL)
+            args.push("mode=" + muside.PlayerMode[player.mode()]);
+                    
+        if (player.state() == musicd.PlayerState.PLAY)
             args.push("autoplay");
         
         location.href = "#" + args.join("&");
@@ -268,3 +181,5 @@ $(function() {
             search.setSearch("albumid:" + player.track.albumid);
     });
 });
+
+})();
