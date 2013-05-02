@@ -55,8 +55,10 @@
                     <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
                         <table data-bind="style: { top: _layout.tableTop() + 'px' }">
                             <tbody data-bind="foreach: _rows, on: { 'mouseover tr': _rowMouseOver, 'dblclick tr': _rowDoubleClick }">
-                                <tr data-bind="foreach: $parent.columns, css: $parent._getRowClass($data)">
-                                    <td data-bind="text: $parents[1]._formatCellText($data, $parent), css: name"></td>
+                                <tr data-bind="css: $parent._getRowClass($data)">
+                                    <!-- ko foreach: $parent.columns -->
+                                        <td data-bind="text: $parents[1]._formatCellText($data, $parent), css: name"></td>
+                                    <!-- /ko -->
                                 </tr>
                             </tbody>
                         </table>
