@@ -157,18 +157,22 @@ body {
 
 #track-info .album-art {
     width: 300px;
+    height: 256px;
     text-align: center;
     overflow: hidden;
 }
 
 #track-info .album-art img {
+    border: 1px solid #888;
+}
+
+#track-info .album-art img, #track-info .album-art .dummy-album-art {
     display: inline-block;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    max-width: 300px;
-    max-height: 300px;
-    border: 1px solid #888;
     vertical-align: middle;
+    max-width: 256px;
+    max-height: 256px;
 }
 
 #track-info .lyrics {
@@ -193,8 +197,8 @@ body {
 
 .dummy-album-art {
     position: relative;
-    width: 300px;
-    height: 300px;
+    width: 256px;
+    height: 256px;
     overflow: hidden;
     border: 1px solid #888;
     -moz-box-sizing: border-box;
