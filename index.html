@@ -65,39 +65,6 @@
                 </div>
             </div>
         </script>
-
-        <div id="player" data-bind="click: musicd.focusDefault">
-            <div id="server-status">
-                <a href="#" class="log-out" data-bind="click: musicd.logOut">Log out</a>
-            </div>
-        
-            <div class="buttons">
-                <button class="toggle-play" accesskey="p" title="Play/pause (p)" data-bind="click: togglePlay, text: (state == musicd.PlayerState.PLAY ? '▮▮' : '▶')"></button>
-                <button class="stop" accesskey="s" title="Stop (s)" data-bind="click: stop">■</button>
-                <button class="prev" accesskey="b" title="Previous (b)" data-bind="click: rewindOrPrev">◀◀</button>
-                <button class="next" accesskey="n" title="Next (n)" data-bind="click: next">▶▶</button>
-                <!--<button class="albums" accesskey="a" title="Album browser (a)">▞▞</button>-->
-                
-                <span id="loading" data-bind="style: { 'visibility': musicd.api.loading() ? 'visible' : 'hidden' }"></span>
-                
-                <span class="current-time" data-bind="text: currentTimeString"></span>
-                
-                <label>
-                    Play mode: 
-                    <select data-bind="value: mode">
-                        <option value="0">Normal</option>
-                        <option value="1">Random</option>
-                        <option value="2">Repeat list</option>
-                        <option value="3">Repeat track</option>
-                    </select>
-                </label>
-                
-                <a href="#" data-bind="click: musicd.linkToCurrentClick">Link to current</a>
-            </div>
-
-            <div class="seek" data-bind="timeslider: { timeValue: currentTime, max: duration, disabled: notSeekable }"></div>
-            <div class="volume" data-bind="slider: { value: volume, orientation: 'vertical', min: 0, max: 100 }"></div>
-        </div>
         
         <div id="track-info">
             <div class="titles" data-bind="with: track">
@@ -133,6 +100,39 @@
                     <div class="unavailable" data-bind="visible: !lyricsLoading()">Lyrics unavailable</div>
                 </div>
             </div>
+        </div>
+
+        <div id="player" data-bind="click: musicd.focusDefault">
+            <div id="server-status">
+                <a href="#" class="log-out" data-bind="click: musicd.logOut">Log out</a>
+            </div>
+
+            <div class="buttons">
+                <button class="toggle-play" accesskey="p" title="Play/pause (p)" data-bind="click: togglePlay, text: (state == musicd.PlayerState.PLAY ? '▮▮' : '▶')"></button>
+                <button class="stop" accesskey="s" title="Stop (s)" data-bind="click: stop">■</button>
+                <button class="prev" accesskey="b" title="Previous (b)" data-bind="click: rewindOrPrev">◀◀</button>
+                <button class="next" accesskey="n" title="Next (n)" data-bind="click: next">▶▶</button>
+                <!--<button class="albums" accesskey="a" title="Album browser (a)">▞▞</button>-->
+
+                <span id="loading" data-bind="style: { 'visibility': musicd.api.loading() ? 'visible' : 'hidden' }"></span>
+
+                <span class="current-time" data-bind="text: currentTimeString"></span>
+
+                <label>
+                    Play mode: 
+                    <select data-bind="value: mode">
+                        <option value="0">Normal</option>
+                        <option value="1">Random</option>
+                        <option value="2">Repeat list</option>
+                        <option value="3">Repeat track</option>
+                    </select>
+                </label>
+
+                <a href="#" data-bind="click: musicd.linkToCurrentClick">Link to current</a>
+            </div>
+
+            <div class="seek" data-bind="timeslider: { timeValue: currentTime, max: duration, disabled: notSeekable }"></div>
+            <div class="volume" data-bind="slider: { value: volume, orientation: 'vertical', min: 0, max: 100 }"></div>
         </div>
         
         <div id="lists">

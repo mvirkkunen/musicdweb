@@ -48,9 +48,9 @@ body {
 }
 
 #player {
-    display: block;
     height: 60px;
     position: relative;
+    margin-left: 320px;
 }
 
 #player .buttons {
