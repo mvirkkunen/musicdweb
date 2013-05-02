@@ -39,21 +39,23 @@ ko.bindingHandlers.on = {
     }
 };
 
+var layoutSubscribable = new ko.subscribable();
+
+musicd.notifyLayoutChange = function() {
+    layoutSubscribable.notifySubscribers();
+}
+
 musicd.windowWidth = ko.observable(0);
 musicd.windowHeight = ko.observable(0);
 
 function updateWindowSize() {
     musicd.windowWidth($(window).width());
     musicd.windowHeight($(window).height());
+
+    musicd.notifyLayoutChange();
 }
 
 $(window).on("resize", updateWindowSize);
-
-var layoutSubscribable = new ko.subscribable();
-
-musicd.notifyLayoutChange = function() {
-    layoutSubscribable.notifySubscribers();
-}
 
 function offsetEqualityComparer(a, b) {
     return a && b && (a.left == b.left) && (a.top == b.top);
@@ -225,10 +227,8 @@ kojqui.bindingFactory.create({
             });
 
             value.timeValue.subscribe(function(newValue) {
-                newValue = Math.floor(newValue);
-
-                if (!dragging && jqel.timeslider("value") != newValue)
-                    jqel.timeslider("value", Math.floor(newValue));
+                if (!dragging)
+                    jqel.timeslider("option", "value", newValue);
             });
         }
 

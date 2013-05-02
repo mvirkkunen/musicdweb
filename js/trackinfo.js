@@ -6,7 +6,7 @@ musicd.TrackInfo = function(track, search) {
     self.track = track;
     self.search = search;
 
-    self.detailsVisible = musicd.setting("TrackInfo.detailsVisible");
+    self.detailsVisible = musicd.setting("TrackInfo.detailsVisible", true);
 
     self.albumArt = new musicd.AlbumArt(track);
 

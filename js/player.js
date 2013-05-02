@@ -54,8 +54,8 @@ musicd.Player = function(el) {
         var track = self.track(), time = Math.floor(self.currentTime());
 
         return (track && time < musicd.Player.TEN_YEARS)
-            ? (musicd.formatTime(self.currentTime(), self.track().duration) + " / " +
-                musicd.formatTime(self.track().duration))
+            ? (musicd.formatTime(time, track.duration) + " / " +
+                musicd.formatTime(track.duration))
             : "--:-- / --:--";
     });
 
@@ -165,6 +165,8 @@ musicd.Player.prototype = {
 
     _currentTimeChanged: function(seconds) {
         var self = this;
+
+        seconds = Math.floor(seconds);
 
         self.currentStart(seconds);
 

@@ -138,8 +138,6 @@ musicd.VirtualList.prototype = {
             self._inhibitRowHighlight = null;
         }, 200);
 
-        console.log(self._inhibitRowHighlight);
-
         self._layout.rowsScrollTop(scrollTop);
     },
 
@@ -153,8 +151,6 @@ musicd.VirtualList.prototype = {
     },
     
     _rowMouseOver: function(item) {
-        musicd.log(this._inhibitRowHighlight);
-
         if (item && !this._inhibitRowHighlight)
             this._highlightedIndex(item.index);
     },
