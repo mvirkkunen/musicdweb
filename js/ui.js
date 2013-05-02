@@ -39,6 +39,26 @@ ko.bindingHandlers.on = {
     }
 };
 
+function createWidgetAccessor(valueAccessor) {
+    var value = valueAccessor();
+
+    return function() {
+        return { name: value.template, data: value };
+    };
+}
+
+ko.bindingHandlers.widget = {
+    init: function(element, valueAccessor, allBindingsAccessor, viewModel, context) {
+        return ko.bindingHandlers.template.init.call(this, element, createWidgetAccessor(valueAccessor),
+            allBindingsAccessor, viewModel, context);
+    },
+
+    update: function(element, valueAccessor, allBindingsAccessor, viewModel, context) {
+        return ko.bindingHandlers.template.update.call(this, element, createWidgetAccessor(valueAccessor), 
+            allBindingsAccessor, viewModel, context);
+    }
+};
+
 var layoutSubscribable = new ko.subscribable();
 
 musicd.notifyLayoutChange = function() {
@@ -113,16 +133,6 @@ $(function() {
     updateWindowSize();
     musicd.notifyLayoutChange();
 });
-
-ko.bindingHandlers.widget = {
-    init: function(el, valueAccessor) {
-        var value = valueAccessor();
-
-        return ko.bindingHandlers.template.init(el, function() { return { name: value.template, data: value }; });
-    },
-
-    update: ko.bindingHandlers.template.update
-};
 
 $.fn.pinHeight = function() {
     return $(this).each(function() {

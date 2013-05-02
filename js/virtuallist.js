@@ -5,6 +5,8 @@
 musicd.VirtualList = function(cache, columns) {
     var self = this;
 
+    self.template = "widget-virtual-list";
+
     self._cache = cache;
     
     self._drawExtraItems = 50;

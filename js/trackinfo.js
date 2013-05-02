@@ -61,6 +61,8 @@ musicd.TrackInfo.prototype = {
 musicd.AlbumArt = function(track) {
     var self = this;
 
+    self.template = "widget-album-art";
+
     self.track = track;
 
     self.loading = ko.observable(false);
