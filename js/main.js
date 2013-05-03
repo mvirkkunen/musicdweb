@@ -88,18 +88,16 @@ musicd.loadQueryString = function(player, search) {
         if (args.mode)
             player.mode(musicd.PlayerMode[args.mode]);
 
-        if (args.search) {
-            // TODO: This doesn't work
-            search.search(args.search, function() {
-                if (args.trackid) {
-                    var track = search.getAdjacentTrack(parseInt(args.trackid, 10), 0, function(track) {
-                        if (track) {
-                            player.track(track);
-                            
-                            if (initial.args)
-                                player.play();
-                        }
-                    });
+        if (args.search)
+            search.search(args.search);
+
+        if (args.trackid) {
+            search.getItem(parseInt(args.trackid, 10), function(track) {
+                if (track) {
+                    player.track(track);
+
+                    if (args.autoplay)
+                        player.play();
                 }
             });
         }
@@ -115,7 +113,7 @@ musicd.serializeState = function(player, search) {
         args.push("trackid=" + player.track().id);
 
     if (player.mode() != musicd.PlayerMode.NORMAL)
-        args.push("mode=" + muside.PlayerMode[player.mode()]);
+        args.push("mode=" + musicd.PlayerMode[player.mode()]);
 
     if (player.state() == musicd.PlayerState.PLAY)
         args.push("autoplay");
@@ -135,6 +133,8 @@ $(function() {
     var search = new musicd.Search(player);
     var trackInfo = new musicd.TrackInfo(player.track, search.search);
 
+    musicd.loadQueryString(player, search);
+
     // ugh
     musicd.linkToCurrentClick = function() {
         location.href = "#" + musicd.serializeState(player, search);
@@ -146,8 +146,6 @@ $(function() {
     ko.applyBindings(trackInfo, $("#track-info")[0]);
     
     ko.applyBindings(search, $("#search")[0]);
-    
-    musicd.loadQueryString(player, search);
 });
 
 })();

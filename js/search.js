@@ -3,7 +3,7 @@
 musicd.Search = function(player) {
     var self = this;
 
-    self.cache = new musicd.ListCache(self._itemProvider.bind(self));
+    self.cache = new musicd.ListCache(self);
 
     self.player = player;
     self.player.track.subscribe(self._playerTrackChange.bind(self));
@@ -40,7 +40,7 @@ musicd.Search.prototype = {
     getAdjacentTrack: function(id, delta, callback) {
         var index = this.cache.getItemIndex(id);
         
-        if (index == -1) {
+        if (index === null) {
             callback(null);
             return;
         }
@@ -57,27 +57,10 @@ musicd.Search.prototype = {
     getRandomTrack: function(callback) {
         this.cache.getRandomItem(callback);
     },
-    
-    // Search methods
-    
-    playFirst: function() {
-        this.getFirstTrack(function(track) {
-            if (track) {
-                this.player.setTrack(track);
-                this.player.play();
-            }
-        }.bind(this));
-    },
-    
-    _playerTrackChange: function(track) {
-        this.vlist.currentId(track ? track.id : null);
-    },
-    
-    _isValidSearch: function(text) {
-        return !!text.match(/...|[\u3040-\u30FF]{2}|[\u3300-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F]/);
-    },
-    
-    _itemProvider: function(offset, limit, reqTotal, callback) {
+
+    // ItemProvider methods
+
+    getItems: function(offset, limit, reqTotal, callback) {
         var self = this,
             text = self.search(),
             args = {
@@ -106,7 +89,37 @@ musicd.Search.prototype = {
             }
         );
     },
+
+    getItem: function(id, callback) {
+        return musicd.api.call(
+            null,
+            "tracks",
+            { trackid: id},
+            function(res) {
+                callback(res && res.tracks && res.tracks[0]);
+            }
+        );
+    },
+
+    // Search methods
+
+    playFirst: function() {
+        this.getFirstTrack(function(track) {
+            if (track) {
+                this.player.setTrack(track);
+                this.player.play();
+            }
+        }.bind(this));
+    },
     
+    _playerTrackChange: function(track) {
+        this.vlist.currentId(track ? track.id : null);
+    },
+
+    _isValidSearch: function(text) {
+        return !!text.match(/...|[\u3040-\u30FF]{2}|[\u3300-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F]/);
+    },
+
     _onItemActivate: function(track) {
         this.player.track(track);
 

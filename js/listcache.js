@@ -1,7 +1,7 @@
 "use strict";
 
 musicd.ListCache = function(itemProvider, pageSize) {
-    this._itemProvider = itemProvider; // function(offset, limit, callback(totalCount, items))
+    this._itemProvider = itemProvider;
     this._pageSize = pageSize || 100;
     this.clear();
 };
@@ -40,7 +40,7 @@ musicd.ListCache.prototype = {
             }
         }
 
-        return -1;
+        return null;
     },
 
     getItemByIndex: function(index, callback) {
@@ -88,7 +88,7 @@ musicd.ListCache.prototype = {
         if (request) { 
             var reqOffset = first * this._pageSize;
             
-            this._itemProvider(
+            this._itemProvider.getItems(
                 reqOffset,
                 (last - first) * this._pageSize,
                 this.totalCount === null,
