@@ -3,20 +3,8 @@
 musicd.Player = function(el) {  
     var self = this;
     
-    self.audio = new Audio();
-    window.debugaudio = self.audio;
-    self.audio.addEventListener("timeupdate", self._audioTimeUpdate.bind(self), true);
-    self.audio.addEventListener("ended", self._audioEnded.bind(self), true);
-
-    self.audioSrc = ko.observable(null);
-    self.audioSrc.equalityComparer = null;
-    self.audioSrc.subscribe(function(val) {
-        self._audioEndedHack = true;
-
-        self.audio.pause();
-        self.audio.src = val;
-        self.audioTime(0);
-    });
+    self._audio = new musicd.AudioPlayer();
+    self._audio.ended.subscribe(self._audioEnded, self);
     
     self.trackSource = null;
 
@@ -37,7 +25,6 @@ musicd.Player = function(el) {
         return self.track() ? self.track().duration : 0;
     });
     
-    self.audioTime = ko.observable(0);
     self.currentStart = ko.observable(0);
     self.pendingSeek = ko.observable(false);
 
@@ -46,14 +33,14 @@ musicd.Player = function(el) {
             if (self.pendingSeek())
                 return self.currentStart();
             else
-                return self.currentStart() + self.audioTime();
+                return self.currentStart() + self._audio.currentTime();
         },
         write: self._currentTimeChanged.bind(self)
     });
     self.currentTimeString = ko.computed(function() {
         var track = self.track(), time = Math.floor(self.currentTime());
 
-        return (track && time < musicd.Player.TEN_YEARS)
+        return (track && time >= 0)
             ? (musicd.formatTime(time, track.duration) + " / " +
                 musicd.formatTime(track.duration))
             : "--:-- / --:--";
@@ -64,40 +51,22 @@ musicd.Player = function(el) {
 
     self.volume = musicd.setting("Player.volume", 100);
     ko.computed(function() {
-        self.audio.volume = self.volume() / 100;
+        self._audio.volume(self.volume());
     });
     
     self.clearHistory();
     
     self.stop();
-    
-    // Workaround for Chromium sometimes not sending the ended event
-    // Perhaps related to
-    // http://code.google.com/p/chromium/issues/detail?id=86830 ?
-    
-    self._audioEndedHack = true;
-    setInterval(function() {
-        if (self._audioEndedHack && self.audio.currentTime > musicd.Player.TEN_YEARS) {
-            self._audioEndedHack = false;
-            self._audioEnded();
-        }
-    }, 1000);
 };
 
 $.extend(musicd.Player, {
-    MAX_HISTORY: 100,
-    
-    TEN_YEARS: 315360000 // seconds
+    MAX_HISTORY: 100
 });
 
 musicd.PlayerState = musicd.makeEnum("STOP", "PLAY", "PAUSE");
 musicd.PlayerMode = musicd.makeEnum("NORMAL", "RANDOM", "REPEAT_LIST", "REPEAT_TRACK");
 
 musicd.Player.prototype = {
-    _audioTimeUpdate: function() {
-        this.audioTime(this.audio.currentTime);
-    },
-
     _audioEnded: function() {
         if (this.mode() == musicd.PlayerMode.REPEAT_TRACK)
             this.currentTime(0);
@@ -111,16 +80,16 @@ musicd.Player.prototype = {
         if (state == musicd.PlayerState.PLAY) {
             if (self.track()) {
                 if (self.pendingSeek()) {
-                    self.audioSrc(musicd.api.getTrackURL(self.track(), self.currentStart()));
+                    self._audio.src(musicd.api.getTrackURL(self.track(), self.currentStart()));
                     self.pendingSeek(false);
                 }
             
-                self.audio.play();
+                self._audio.play();
             } else {
                 self.playFirst();
             }
         } else {
-            self.audio.pause();
+            self._audio.pause();
         }
         
         if (state == musicd.PlayerState.STOP)
@@ -136,9 +105,8 @@ musicd.Player.prototype = {
             this._pushHistory(track);
         
         self.currentStart(0);
-        self.audioTime(0);
         self.pendingSeek(false);
-        self.audioSrc(musicd.api.getTrackURL(track));
+        self._audio.src(musicd.api.getTrackURL(track));
         
         self.play();
     },
@@ -171,8 +139,8 @@ musicd.Player.prototype = {
         self.currentStart(seconds);
 
         if (self.state() == musicd.PlayerState.PLAY) {
-            self.audioSrc(musicd.api.getTrackURL(self.track(), seconds));
-            self.audio.play();
+            self._audio.src(musicd.api.getTrackURL(self.track(), seconds));
+            self._audio.play();
         } else {
             self.pendingSeek(true);
         }
