@@ -30,12 +30,16 @@ ko.bindingHandlers.on = {
             if (!(m = ev.match(/^([^ ]+) (.+)/)))
                 return;
 
-            el.on(m[1], m[2], function() {
-                var args = $.makeArray(arguments);
-                args.unshift(ko.dataFor(this));
-                handler.apply(viewModel, args);
+            el.on(m[1], m[2], function(e) {
+                handler.call(viewModel, $(this).data("eventData") || ko.dataFor(this), e);
             });
         });
+    }
+};
+
+ko.bindingHandlers.eventData = {
+    update: function(el, valueAccessor) {
+        $(el).data("eventData", valueAccessor());
     }
 };
 
