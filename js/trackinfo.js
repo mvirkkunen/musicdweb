@@ -64,30 +64,15 @@ musicd.AlbumArt = function(track) {
     self.template = "widget-album-art";
 
     self.track = track;
-
-    self.loading = ko.observable(false);
-    self.url = ko.observable("dummy://");
+    self.url = ko.observable("");
 
     ko.computed(function() {
         var track = self.track();
 
-        if (track && track.albumid) {
-            var src = musicd.api.getAlbumImageURL(track.albumid, 256);
-
-            self.loading(true);
-            $("<img>").one("load error", function(e) {
-                if (!self.track() || self.track().id != track.id)
-                    return;
-
-                self.url(e.type == "load" ? src : "dummy://");
-                self.loading(false);
-            }).attr("src", src);
-
-            setTimeout(musicd.notifyLayoutChange, 100); // TODO: kludge
-        } else {
-            self.url("dummy://");
-        }
-
-        musicd.notifyLayoutChange();
+        self.url((track && track.albumid)
+            ? musicd.api.getAlbumImageURL(track.albumid, 256)
+            : null);
     });
+
+    self.loaded = ko.observable(false);
 };

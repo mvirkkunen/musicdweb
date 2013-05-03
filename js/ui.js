@@ -4,21 +4,21 @@
 
 ko.bindingHandlers.slideVisible = {
     init: function(el, valueAccessor) {
-        $(el).toggle(ko.utils.unwrapObservable(valueAccessor()));
+        $(el).toggle(!!ko.utils.unwrapObservable(valueAccessor()));
     },
 
     update: function(el, valueAccessor) {
-        $(el)[ko.utils.unwrapObservable(valueAccessor()) ? "slideDown" : "slideUp"](200);
+        $(el).stop(true, true)[ko.utils.unwrapObservable(valueAccessor()) ? "slideDown" : "slideUp"](200);
     }
 };
 
 ko.bindingHandlers.fadeVisible = {
     init: function(el, valueAccessor) {
-        $(el).toggle(ko.utils.unwrapObservable(valueAccessor()));
+        $(el).toggle(!!ko.utils.unwrapObservable(valueAccessor()));
     },
 
     update: function(el, valueAccessor) {
-        $(el)[ko.utils.unwrapObservable(valueAccessor()) ? "fadeIn" : "fadeOut"](200);
+        $(el).stop(true, true)[ko.utils.unwrapObservable(valueAccessor()) ? "fadeIn" : "fadeOut"](200);
     }
 };
 
@@ -251,5 +251,47 @@ kojqui.bindingFactory.create({
         });
     }
 });
+
+$.preloadImage = function(url, callback) {
+    var img = $("<img>");
+
+    img.on("load.preload error.preload", function(e) {
+        callback(e.type == "load");
+
+        console.log(img[0], img[0].width, img[0].height);
+
+        img.off(".preload").remove();
+    }).attr("src", url).hide().appendTo("body");
+};
+
+ko.bindingHandlers.preloadedImage = {
+    init: function(el, valueAccessor) {
+        var value = valueAccessor();
+
+        ko.computed(function() {
+            var src = ko.utils.unwrapObservable(value.src),
+                img = $("<img>");
+
+            if (value.loaded)
+                value.loaded(false);
+
+            console.log("src", src);
+            
+            if (src) {
+                img.on("load.preload error.preload", function(e) {
+                    img.off(".preload");
+                    
+                    if (e.type == "load" && ko.utils.unwrapObservable(value.src) === src) {
+                        $(el).empty().append(img);
+                        if (value.loaded)
+                            value.loaded(true);
+                    }
+                }).attr("src", src);
+            } else {
+                $(el).empty();
+            }
+        });
+    }
+};
 
 })();

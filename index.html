@@ -28,12 +28,12 @@
         </div>
         
         <script type="text/html" id="widget-album-art">
-            <div class="dummy-album-art" data-bind="visible: url() == 'dummy://'">
-                <h3 data-bind="text: (track() &amp;&amp; track().album) ? track().album : 'Untitled album'"></h3>
-                <p data-bind="text: (track() &amp;&amp; track().artist) ? track().artist : 'Untitled artist'"></p>
-            </div>
-            <div class="album-image" data-bind="if: url() != 'dummy://'">
-                <img data-bind="attr: { src: url }" alt="Album art" />
+            <div class="album-art">
+                <div class="album-image" data-bind="preloadedImage: { src: url, loaded: loaded }"></div>
+                <div class="dummy-album-art" data-bind="fadeVisible: !loaded()">
+                    <h3 data-bind="text: (track() &amp;&amp; track().album) ? track().album : 'Untitled album'"></h3>
+                    <p data-bind="text: (track() &amp;&amp; track().artist) ? track().artist : 'Untitled artist'"></p>
+                </div>
             </div>
         </script>
 
@@ -89,7 +89,7 @@
             </p>
 
             <div class="details" data-bind="slideVisible: detailsVisible">
-                <div class="album-art" data-bind="widget: albumArt, event: { dblclick: albumArtDoubleClick }"></div>
+                <div data-bind="widget: albumArt, event: { dblclick: albumArtDoubleClick }"></div>
 
                 <div class="lyrics" data-bind="with: lyrics, offset: lyricsOffset, style: { maxHeight: lyricsMaxHeight }">
                     <div class="text" data-bind="text: lyrics"></div>
