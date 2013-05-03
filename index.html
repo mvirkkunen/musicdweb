@@ -10,6 +10,7 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/2.2.1/knockout-min.js"></script>
         <script src="js/knockout-jqueryui.min.js"></script>
+        <script src="js/knockout-repeat.min.js"></script>
         <script src="js/utils.js"></script>
         <script src="js/main.js"></script>
         <script src="js/api.js"></script>
@@ -54,11 +55,11 @@
                                 style: { height: _layout.rowsHeight() + 'px' }">
                     <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
                         <table data-bind="style: { top: _layout.tableTop() + 'px' }">
-                            <tbody data-bind="foreach: _rows, on: { 'mouseover tr': _rowMouseOver, 'dblclick tr': _rowDoubleClick }">
-                                <tr data-bind="css: $parent._getRowClass($data)">
-                                    <!-- ko foreach: $parent.columns -->
-                                        <td data-bind="text: $parents[1]._formatCellText($data, $parent), css: name"></td>
-                                    <!-- /ko -->
+                            <tbody data-bind="on: { 'mouseover tr': _rowMouseOver, 'dblclick tr': _rowDoubleClick }">
+                                <tr data-bind="repeat: { foreach: _rows, item: 'item' }"
+                                    data-repeat-bind="css: _getRowClass(item())">
+                                    <td data-bind="repeat: { foreach: columns, item: 'col' }"
+                                        data-repeat-bind="text: _formatCellText(col(), item()), css: col().name"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -66,7 +67,7 @@
                 </div>
             </div>
         </script>
-        
+
         <div id="track-info">
             <div class="titles" data-bind="with: track">
                 <h2 data-bind="visible: title">
