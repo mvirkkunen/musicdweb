@@ -110,7 +110,7 @@
             </div>
 
             <div class="buttons">
-                <button class="toggle-play" accesskey="p" title="Play/pause (p)" data-bind="click: togglePlay, text: (state == musicd.PlayerState.PLAY ? '▮▮' : '▶')"></button>
+                <button class="toggle-play" accesskey="p" title="Play/pause (p)" data-bind="click: togglePlay, text: (state() == musicd.PlayerState.PLAY ? '▮▮' : '▶')"></button>
                 <button class="stop" accesskey="s" title="Stop (s)" data-bind="click: stop">■</button>
                 <button class="prev" accesskey="b" title="Previous (b)" data-bind="click: rewindOrPrev">◀◀</button>
                 <button class="next" accesskey="n" title="Next (n)" data-bind="click: next">▶▶</button>
