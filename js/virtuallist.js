@@ -22,7 +22,7 @@ musicd.VirtualList = function(cache, columns) {
     self._inhibitRowHighlight = null;
 
     self._layout = {
-        itemHeight: ko.observable(20),
+        itemHeight: ko.observable(24),
         padderHeight: ko.observable(0),
         tableTop: ko.observable(0),
         rowsWidth: ko.observable(0),
