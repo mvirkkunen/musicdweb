@@ -53,6 +53,7 @@ musicd.APIClient.prototype = {
     },
 
     isAuthenticated: function(callback) {
+        // TODO: Use a more sensible method to ping
         $.request({
             type: "GET",
             url: this._urlPrefix + "tracks?limit=1",

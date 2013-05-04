@@ -3,7 +3,7 @@
     <head>
         <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
         <title>musicd</title>
-        <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.2/css/lightness/jquery-ui-1.10.2.custom.min.css" />
+        <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.2/css/smoothness/jquery-ui-1.10.2.custom.min.css" />
         <link rel="stylesheet" type="text/css" href="musicd.css" />
         <link id="favicon" rel="shortcut icon" type="image/png" data-bind="attr: { href: 'img/icon-' + musicd.PlayerState[$data].toLowerCase() + '.png' }" />
         <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
@@ -27,47 +27,6 @@
         <div id="invalid-browser" class="error" style="display: none;">
             <strong>Warning:</strong> Your browser is not supported (reason: <span class="reason"></span>)
         </div>
-        
-        <script type="text/html" id="widget-album-art">
-            <div class="album-art">
-                <div class="album-image" data-bind="preloadedImage: { src: url, loaded: loaded }"></div>
-                <div class="dummy-album-art" data-bind="fadeVisible: !loaded()">
-                    <h3 data-bind="text: (track() &amp;&amp; track().album) ? track().album : 'Untitled album'"></h3>
-                    <p data-bind="text: (track() &amp;&amp; track().artist) ? track().artist : 'Untitled artist'"></p>
-                </div>
-            </div>
-        </script>
-
-        <script type="text/html" id="widget-virtual-list">
-            <div class="virtual-list">
-                <table class="heading" data-bind="style: { width: _layout.rowsWidth() + 'px' }">
-                    <thead>
-                        <tr data-bind="foreach: columns">
-                            <th data-bind="text: title, css: name"></th>
-                        </tr>
-                    </thead>
-                </table>
-                <div class="rows"
-                     data-bind="offset: _layout.rowsOffset,
-                                clientWidth: _layout.rowsWidth,
-                                height: _layout.rowsHeight,
-                                scrollTop: _layout.rowsScrollTop,
-                                scrollTopHysteresis: 100,
-                                style: { height: _layout.rowsHeight() + 'px' }">
-                    <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
-                        <table data-bind="style: { top: _layout.tableTop() + 'px' }">
-                            <tbody data-bind="on: { 'mouseover tr': _rowMouseOver, 'dblclick tr': _rowDoubleClick }">
-                                <tr data-bind="repeat: { foreach: _rows, item: 'item' }"
-                                    data-repeat-bind="css: _getRowClass(item()), eventData: item()">
-                                    <td data-bind="repeat: { foreach: columns, item: 'col' }"
-                                        data-repeat-bind="text: _formatCellText(col(), item()), css: col().name"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </script>
 
         <div id="track-info">
             <div class="titles" data-bind="with: track">
@@ -105,78 +64,77 @@
             </div>
         </div>
 
-        <div id="player" data-bind="click: musicd.focusDefault">
-            <div id="server-status">
-                <a href="#" class="log-out" data-bind="click: musicd.logOut">Log out</a>
-            </div>
+        <div id="main-body">
+            <div id="player" data-bind="click: musicd.focusDefault">
+                <div id="server-status">
+                    <a href="#" class="log-out" data-bind="click: musicd.logOut">Log out</a>
+                </div>
 
-            <div class="buttons">
-                <button class="toggle-play" accesskey="p" title="Play/pause (p)" data-bind="click: togglePlay, text: (state() == musicd.PlayerState.PLAY ? '▮▮' : '▶')"></button>
-                <button class="stop" accesskey="s" title="Stop (s)" data-bind="click: stop">■</button>
-                <button class="prev" accesskey="b" title="Previous (b)" data-bind="click: rewindOrPrev">◀◀</button>
-                <button class="next" accesskey="n" title="Next (n)" data-bind="click: next">▶▶</button>
-                <!--<button class="albums" accesskey="a" title="Album browser (a)">▞▞</button>-->
+                <div class="buttons">
+                    <button class="toggle-play" accesskey="p" title="Play/pause (p)" data-bind="click: togglePlay, text: (state() == musicd.PlayerState.PLAY ? '▮▮' : '▶')"></button>
+                    <button class="stop" accesskey="s" title="Stop (s)" data-bind="click: stop">■</button>
+                    <button class="prev" accesskey="b" title="Previous (b)" data-bind="click: rewindOrPrev">◀◀</button>
+                    <button class="next" accesskey="n" title="Next (n)" data-bind="click: next">▶▶</button>
+                    <!--<button class="albums" accesskey="a" title="Album browser (a)">▞▞</button>-->
 
-                <span id="loading" data-bind="style: { 'visibility': musicd.api.loading() ? 'visible' : 'hidden' }"></span>
+                    <span id="loading" data-bind="style: { 'visibility': musicd.api.loading() ? 'visible' : 'hidden' }"></span>
 
-                <span class="current-time" data-bind="text: currentTimeString"></span>
+                    <span class="current-time" data-bind="text: currentTimeString"></span>
 
-                <label>
-                    Play mode: 
                     <select data-bind="value: mode">
                         <option value="0">Normal</option>
                         <option value="1">Random</option>
                         <option value="2">Repeat list</option>
                         <option value="3">Repeat track</option>
                     </select>
-                </label>
 
-                <a href="#" data-bind="click: musicd.linkToCurrentClick">Link to current</a>
-            </div>
-
-            <div class="seek" data-bind="timeslider: { timeValue: currentTime, max: duration, disabled: notSeekable }"></div>
-            <div class="volume" data-bind="slider: { value: volume, orientation: 'vertical', min: 0, max: 100 }"></div>
-        </div>
-        
-        <div id="lists">
-            <div id="search" data-bind="click: _rootClick, event: { keydown: vlist.handleKeyEvent.bind(vlist) }">
-                <h2>
-                    Songs on the server - 
-                    Total results: <strong data-bind="text: totalResults"></strong>
-                </h2>
-                
-                <div class="search">
-                    <input type="search" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" />
+                    <a class="link-to-current" href="#" data-bind="click: musicd.linkToCurrentClick">Link to current</a>
                 </div>
-                
-                <div class="track-list" data-bind="widget: vlist"></div>
-            </div>
-        </div>
-        
-        <div id="authentication" class="dialog" style="display: none;">
-            <h2>Authentication required</h2>
-            
-            <div class="error" style="display: none;">
-                Authentication failure. Check username and password.
+
+                <div class="seek" data-bind="timeslider: { timeValue: currentTime, max: duration, disabled: notSeekable }"></div>
+                <div class="volume" data-bind="slider: { value: volume, orientation: 'vertical', min: 0, max: 100 }"></div>
             </div>
             
-            <p>This server requires authentication.</p>
-            
-            <form>
-                <label class="field">
-                    <span class="label">Username:</span>
-                    <input type="text" class="value user" />
-                </label>
-                <label class="field">
-                    <span class="label">Password:</span>
-                    <input type="password" class="value password" />
-                </label>
-                <div class="field">
-                    <div class="value">
-                        <button type="submit" class="submit">Login</button>
+            <div id="lists">
+                <div id="search" data-bind="click: _rootClick, event: { keydown: vlist.handleKeyEvent.bind(vlist) }">
+                    <h2>
+                        Songs on the server - 
+                        Total results: <strong data-bind="text: totalResults"></strong>
+                    </h2>
+
+                    <div class="search">
+                        <input type="search" placeholder="Search tracks" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" />
                     </div>
+
+                    <div class="track-list" data-bind="widget: vlist"></div>
                 </div>
-            </form>
+            </div>
+            
+            <div id="authentication" class="dialog" style="display: none;">
+                <h2>Authentication required</h2>
+
+                <div class="error" style="display: none;">
+                    Authentication failure. Check username and password.
+                </div>
+
+                <p>This server requires authentication.</p>
+
+                <form>
+                    <label class="field">
+                        <span class="label">Username:</span>
+                        <input type="text" class="value user" />
+                    </label>
+                    <label class="field">
+                        <span class="label">Password:</span>
+                        <input type="password" class="value password" />
+                    </label>
+                    <div class="field">
+                        <div class="value">
+                            <button type="submit" class="submit">Login</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
         
         <div id="album-browser" style="display: none;"></div>
@@ -186,6 +144,49 @@
             <div class="container">
                 <div class="padder">
                     <ul data-id="ul"></ul>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/html" id="widget-album-art">
+            <div class="album-art" data-bind="css: { loaded: loaded }">
+                <div class="album-image" data-bind="preloadedImage: { src: url, loaded: loaded }"></div>
+                <div class="dummy-album-art" data-bind="fadeVisible: !loaded()">
+                    <h3 data-bind="text: (track() &amp;&amp; track().album) ? track().album : 'Untitled album'"></h3>
+                    <p data-bind="text: (track() &amp;&amp; track().artist) ? track().artist : 'Untitled artist'"></p>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/html" id="widget-virtual-list">
+            <div class="virtual-list">
+                <div class="heading">
+                    <table data-bind="style: { width: _layout.rowsWidth() + 'px' }">
+                        <thead>
+                            <tr data-bind="foreach: columns">
+                                <th data-bind="text: title, css: name"></th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="rows"
+                     data-bind="offset: _layout.rowsOffset,
+                                clientWidth: _layout.rowsWidth,
+                                height: _layout.rowsHeight,
+                                scrollTop: _layout.rowsScrollTop,
+                                scrollTopHysteresis: 100,
+                                style: { height: _layout.rowsHeight() + 'px' }">
+                    <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
+                        <table data-bind="style: { top: _layout.tableTop() + 'px' }">
+                            <tbody data-bind="on: { 'mouseover tr': _rowMouseOver, 'dblclick tr': _rowDoubleClick }">
+                                <tr data-bind="repeat: { foreach: _rows, item: 'item' }"
+                                    data-repeat-bind="css: _getRowClass(item()), eventData: item()">
+                                    <td data-bind="repeat: { foreach: columns, item: 'col' }"
+                                        data-repeat-bind="text: _formatCellText(col(), item()), css: col().name"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </script>

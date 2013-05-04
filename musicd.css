@@ -29,96 +29,8 @@ body {
     font-family: Arial, sans-serif;
     color: #333;
     font-size: 12px;
-    padding: 10px;
     overflow: hidden;
-}
-
-#server-status {
-    float: right;
-    margin-right: 40px;
-}
-
-#loading, #track-info .lyrics .loading {
-    display: inline-block;
-    width: 18px;
-    height: 15px;
-    background: url(img/loading.gif) top left no-repeat;
-    margin: 0 5px;
-    vertical-align: middle;
-}
-
-#player {
-    height: 60px;
-    position: relative;
-    margin-left: 320px;
-}
-
-#player .buttons {
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
-#player .buttons button {
-    display: inline-block;
-    width: 40px;
-    height: 26px;
-    padding: 0;
-    line-height: 24px;
-    text-align: center;
-    font-size: 15px;
-    margin-right: 10px;
-}
-
-#player .buttons .pause {
-    font-size: 12px;
-}
-
-#player .buttons .prev, #player .buttons .next {
-    font-size: 12px;
-    letter-spacing: -4px;
-}
-
-#player .buttons .current-time {
-    font-family: monospace;
-    font-size: 1.2em;
-    margin-right: 20px;
-}
-
-#player .seek {
-    position: absolute;
-    left: 5px;
-    right: 40px;
-    top: 40px;
-}
-
-#player .volume {
-    position: absolute;
-    right: 0;
-    top: 5px;
-    height: 45px;
-}
-
-.slider-time {
-    position: absolute;
-    bottom: 100%;
-    margin-bottom: 8px;
-    padding: 3px;
-    border-radius: 2px;
-    background: #000;
-    color: #FFF;
-    opacity: 0.9;
-    pointer-events: none;
-}
-
-.slider-time div {
-    position: absolute;
-    left: 50%;
-    top: 100%;
-    margin-left: -4px;
-    border-width: 4px 4px 0 4px;
-    border-style: solid;
-    border-color: #000 transparent transparent transparent;
+    background: #FFF;
 }
 
 .album-art {
@@ -134,34 +46,31 @@ body {
     width: 100%;
     height: 100%;
     text-align: center;
-    overflow: hidden;
 }
 
 .album-art .album-image {
     line-height: 256px;
 }
 
-.album-art img, .album-art .dummy-album-art {
+.album-art .album-image img, .album-art .dummy-album-art {
     display: inline-block;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     vertical-align: middle;
     max-width: 256px;
     max-height: 256px;
+    border: 1px solid #CCC;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 .dummy-album-art {
-    position: relative;
     width: 256px;
     height: 256px;
     overflow: hidden;
-    border: 1px solid #888;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
     padding: 20px;
-    background: #EEE;
     font-family: serif;
     font-size: 14px;
+    background: #F8F8F8;
 }
 
 .dummy-album-art h3 {
@@ -170,7 +79,8 @@ body {
 }
 
 #track-info {
-    width: 300px;
+    width: 280px;
+    padding: 20px 10px 0 10px;
     float: left;
 }
 
@@ -227,14 +137,109 @@ body {
     color: inherit;
 }
 
-#lists {
-    margin-left: 320px;
-    overflow: hidden;
+#server-status {
+    float: right;
+    margin-right: 40px;
 }
 
-#search {
-/*    width: 48%;
-    float: left;*/
+#loading, #track-info .lyrics .loading {
+    display: inline-block;
+    width: 18px;
+    height: 15px;
+    background: url(img/loading.gif) top left no-repeat;
+    margin: 0 5px;
+    vertical-align: middle;
+}
+
+#main-body {
+    padding: 20px 10px 10px 10px;
+    margin-top: -10px;
+    margin-left: 300px;
+    background: #F0F8FF;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+    border-radius: 0 0 0 10px;
+}
+
+#player {
+    height: 60px;
+    position: relative;
+    padding-top: 10px;
+}
+
+#player .buttons {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#player .buttons button {
+    display: inline-block;
+    width: 40px;
+    height: 26px;
+    padding: 0;
+    line-height: 24px;
+    text-align: center;
+    font-size: 15px;
+    margin-right: 10px;
+}
+
+#player .buttons .pause {
+    font-size: 12px;
+}
+
+#player .buttons .prev, #player .buttons .next {
+    font-size: 12px;
+    letter-spacing: -4px;
+}
+
+#player .buttons .current-time {
+    font-family: monospace;
+    font-size: 1.2em;
+    margin-right: 20px;
+}
+
+#player .buttons .link-to-current {
+    margin-left: 20px;
+}
+
+#player .seek {
+    position: absolute;
+    left: 5px;
+    right: 40px;
+    top: 40px;
+}
+
+#player .volume {
+    position: absolute;
+    right: 0;
+    top: 5px;
+    height: 45px;
+}
+
+.slider-time {
+    position: absolute;
+    bottom: 100%;
+    margin-bottom: 8px;
+    padding: 3px;
+    border-radius: 2px;
+    background: #000;
+    color: #FFF;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.slider-time div {
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    margin-left: -4px;
+    border-width: 4px 4px 0 4px;
+    border-style: solid;
+    border-color: #000 transparent transparent transparent;
+}
+
+#lists {
+    overflow: hidden;
 }
 
 #search .search {
@@ -245,7 +250,11 @@ body {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     width: 100%;
-    border: 1px solid #888;
+    padding: 4px;
+    border: 1px solid #CCC;
+    -moz-appearance: textfield;
+    -webkit-appearance: textfield;
+    appearance: textfield;
 }
 
 #playlist {
@@ -256,6 +265,8 @@ body {
 
 .virtual-list {
     position: relative;
+    border: 1px solid #CCC;
+    background: #FFF;
 }
 
 .virtual-list .menu-button {
@@ -311,8 +322,8 @@ body {
 }
 
 .virtual-list th {
-    border-top: 1px solid #CCC;
-    border-bottom: 1px solid #CCC;
+    border-top: 1px solid #EEE;
+    border-bottom: 1px solid #EEE;
     border-right: 1px solid #DDD;
     background: #EEE;
 }
@@ -343,9 +354,9 @@ body {
     background: #FFF;
 }
 
-.virtual-list .heading-table {
-    box-sizing: border-box;
-    padding-right: 18px;
+.virtual-list .heading {
+    background: #EEE;
+    border-bottom: 1px solid #CCC;
 }
 
 .virtual-list .rows {
@@ -374,7 +385,7 @@ body {
     top: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(255, 255, 255, 0.6);
     z-index: 99;
 }
 
@@ -503,10 +514,8 @@ body {
     width: 400px;
     margin-left: -200px;
     background: #FFF;
-    border: 1px solid #000;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-    -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-    -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    border: 1px solid #CCC;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 .dialog h2 {
