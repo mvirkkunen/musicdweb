@@ -72,8 +72,7 @@ musicd.checkCompatibility = function() {
     
     if (!window.Audio)
         reasons.push("your browser doesn't seem to support HTML5 Audio. Shame on you!");
-    
-    if (!new Audio().canPlayType("audio/mpeg"))
+    else if (!new Audio().canPlayType("audio/mpeg"))
         reasons.push("your browser doesn't seem to support MP3. Vorbis support is on the TODO list!");
     
     if (reasons.length)
