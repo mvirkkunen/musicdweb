@@ -13,8 +13,13 @@ Number.prototype.pad = function(length) {
 };
 
 musicd.log = function() {
-    if (window.console && console.log)
-        console.log.apply(console, arguments);
+    if (window.console && console.log) {
+        try {
+            console.log.apply(console, arguments);
+        } catch (e) {
+            console.log(Array.prototype.join.call(arguments, ","));
+        }
+    }
 };
 
 musicd.makeEnum = function() {
