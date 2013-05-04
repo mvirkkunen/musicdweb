@@ -75,7 +75,6 @@
                     <button class="stop" accesskey="s" title="Stop (s)" data-bind="click: stop">■</button>
                     <button class="prev" accesskey="b" title="Previous (b)" data-bind="click: rewindOrPrev">◀◀</button>
                     <button class="next" accesskey="n" title="Next (n)" data-bind="click: next">▶▶</button>
-                    <!--<button class="albums" accesskey="a" title="Album browser (a)">▞▞</button>-->
 
                     <span id="loading" data-bind="style: { 'visibility': musicd.api.loading() ? 'visible' : 'hidden' }"></span>
 
@@ -136,17 +135,8 @@
                 </form>
             </div>
         </div>
-        
-        <div id="album-browser" style="display: none;"></div>
+
         <div id="shader" style="display: none;"></div>
-        
-        <script id="albumbrowser" type="text/html">
-            <div class="container">
-                <div class="padder">
-                    <ul data-id="ul"></ul>
-                </div>
-            </div>
-        </script>
 
         <script type="text/html" id="widget-album-art">
             <div class="album-art" data-bind="css: { loaded: loaded }">
