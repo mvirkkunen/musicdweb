@@ -252,18 +252,6 @@ kojqui.bindingFactory.create({
     }
 });
 
-$.preloadImage = function(url, callback) {
-    var img = $("<img>");
-
-    img.on("load.preload error.preload", function(e) {
-        callback(e.type == "load");
-
-        console.log(img[0], img[0].width, img[0].height);
-
-        img.off(".preload").remove();
-    }).attr("src", url).hide().appendTo("body");
-};
-
 ko.bindingHandlers.preloadedImage = {
     init: function(el, valueAccessor) {
         var value = valueAccessor();
@@ -274,8 +262,6 @@ ko.bindingHandlers.preloadedImage = {
 
             if (value.loaded)
                 value.loaded(false);
-
-            console.log("src", src);
             
             if (src) {
                 img.on("load.preload error.preload", function(e) {

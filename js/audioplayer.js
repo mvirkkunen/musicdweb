@@ -13,6 +13,7 @@
         self._audio = new Audio();
         self._audio.addEventListener("timeupdate", self._timeUpdate.bind(self), true);
         self._audio.addEventListener("ended", self._ended.bind(self), true);
+        self._audio.addEventListener("error", self._error.bind(self), true);
 
         self.volume = ko.observable(100);
         ko.computed(function() {
@@ -54,6 +55,30 @@
 
         _ended: function() {
             this.ended.notifySubscribers();
+        },
+
+        _error: function() {
+            var self = this;
+
+            self._audio.pause();
+
+            musicd.api.isAuthenticated(function(authenticated) {
+                if (authenticated) {
+                    musicd.log("Audio error, skipped track " + self.src());
+                    self._ended();
+                } else {
+                    // Dummy request to request authentication
+                    musicd.api.call(
+                        null,
+                        "musicd",
+                        {},
+                        function() {
+                            self.src(self.src());
+                            self.play();
+                        }
+                    );
+                }
+            });
         },
 
         play: function() {

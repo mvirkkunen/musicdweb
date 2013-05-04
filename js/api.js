@@ -51,7 +51,22 @@ musicd.APIClient.prototype = {
 
         this._executeNext();
     },
-    
+
+    isAuthenticated: function(callback) {
+        $.request({
+            type: "GET",
+            url: this._urlPrefix + "tracks?limit=1",
+            dataType: "json",
+            success: function(r) { callback(true); },
+            error: function(xhr) {
+                if (xhr.status != 403)
+                    alert("/musicd returned weird status");
+
+                callback(false);
+            }
+        });
+    },
+
     getTrackURL: function(track, seek) {
         var url = this._urlPrefix + "open?id=" + track.id;
         
@@ -119,6 +134,8 @@ musicd.APIClient.prototype = {
     },
 
     authenticate: function(user, password, success, error) {
+        var self = this;
+
         $.request({
             type: "GET",
             url: this._urlPrefix + "auth",
@@ -134,11 +151,11 @@ musicd.APIClient.prototype = {
                 }
 
                 success();
-                this._executeNext();
-            }.bind(this),
+                self._executeNext();
+            },
             error: function(xhr) {
                 alert("Auth fail (" + xhr.status + " " + xhr.statusText + ")");
-            }.bind(this)
+            }
         })
     }
 };    
