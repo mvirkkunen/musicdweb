@@ -134,6 +134,10 @@ $(function() {
 
     musicd.loadQueryString(player, search);
 
+    // TODO: Make this a setting
+    if (qs.remote)
+        new musicd.RemoteControl(player).enable();
+
     // ugh
     musicd.linkToCurrentClick = function() {
         location.href = "#" + musicd.serializeState(player, search);

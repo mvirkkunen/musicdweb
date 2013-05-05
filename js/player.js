@@ -60,7 +60,8 @@ musicd.Player = function(el) {
 };
 
 $.extend(musicd.Player, {
-    MAX_HISTORY: 100
+    MAX_HISTORY: 100,
+    COMMANDS: ["play", "pause", "stop", "togglePlay", "prev", "next", "rewindOrPrev"]
 });
 
 musicd.PlayerState = musicd.makeEnum("STOP", "PLAY", "PAUSE");
@@ -232,5 +233,10 @@ musicd.Player.prototype = {
             self.prev();
         else
             self.currentTime(0);
+    },
+
+    execCommand: function(cmd) {
+        if (musicd.Player.COMMANDS.indexOf(cmd) != -1)
+            this[cmd].call(this);
     }
 };
