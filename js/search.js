@@ -26,12 +26,12 @@ musicd.Search = function(player) {
     
     self.vlist.itemActivate.subscribe(self._onItemActivate, self);
 
-    ko.computed(function() {
-        self.search();
-        
+    self.search.subscribe(function() {
         self.player.clearHistory();
         self.vlist.refresh();
     });
+
+    self.search("");
 };
 
 musicd.Search.prototype = {

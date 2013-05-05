@@ -170,10 +170,6 @@ $(function() {
 
     main.loadQueryString();
 
-    // TODO: Make this a setting
-    if (qs.remote)
-        main.remoteControl.enable();
-
     ko.applyBindings(main);
     ko.applyBindings(main.player.state, $("#favicon")[0]);
 });

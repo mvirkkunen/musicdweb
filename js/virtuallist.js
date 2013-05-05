@@ -40,25 +40,16 @@ musicd.VirtualList = function(cache, columns) {
         self._layout.rowsHeight();
         self._layout.rowsScrollTop();
 
-        var visible = self._getVisibleRange(),
-            completed = false;
-        
-        self._cache.ensureItems(visible.offset, visible.limit, function() {
-            self._draw();
-            
-            completed = true;
-        });
-        
-        if (!completed)
-            self._draw();
+        self._refreshInternal();
     });
 };
 
 musicd.VirtualList.prototype = {
-    refresh: function(callback) {
+    refresh: function() {
         this._cache.clear();
         this._highlightedIndex(null);
-        this.scrollTo(0, callback);
+        this._layout.rowsScrollTop(0);
+        this._refreshInternal();
     },
     
     handleKeyEvent: function(data, e) {
@@ -81,6 +72,21 @@ musicd.VirtualList.prototype = {
         }
 
         return true;
+    },
+
+    _refreshInternal: function() {
+        var self = this,
+            visible = self._getVisibleRange(),
+            completed = false;
+
+        self._cache.ensureItems(visible.offset, visible.limit, function() {
+            self._draw();
+
+            completed = true;
+        });
+
+        if (!completed)
+            self._draw();
     },
 
     _draw: function() {
@@ -143,10 +149,6 @@ musicd.VirtualList.prototype = {
         self._layout.rowsScrollTop(scrollTop);
     },
 
-    scrollTo: function(index) {
-        this._layout.rowsScrollTop(index * this._layout.itemHeight());
-    },
-    
     _rowDoubleClick: function(item) {
         if (item)
             this.itemActivate.notifySubscribers(item);
