@@ -5,7 +5,6 @@
 var theAWord = "\x61\x6a\x61\x78";
 $.request = $[theAWord];
 $[theAWord + "Setup"]({
-   xhrFields: { withCredentials: true},
    crossDomain: true
 });
 
@@ -20,48 +19,7 @@ musicd.shader = {
 };
 
 musicd.authenticate = function(api) {
-    var dialog = $("#authentication");
-    if (dialog.is(":visible"))
-        return;
-        
-    function auth(e) {
-        e.preventDefault();
-        
-        dialog.find(".error").hide();
-        
-        var user = $(".user").val();
-        
-        api.authenticate(
-            user,
-            dialog.find(".password").val(),
-            function() {
-                dialog.off("click dblclick");
-                dialog.find("form").off("submit");
-                dialog.fadeOut();
-                musicd.shader.hide();
-                $("#server-status").fadeIn();
-                $("#server-status .user").text(user);
-            },
-            function() {
-                dialog.find(".error").slideDown();
-                dialog.find(user ? ".password" : ".user").focus().select();
-            }
-        );
-    }
-    
-    musicd.shader.show();
-        
-    dialog.on("click dblclick", musicd.stopPropagation);
-    dialog.fadeIn()
-    dialog.find(".error").hide();
-    dialog.find("input[type=text]").eq(0).focus();
-    dialog.find("form").on("submit", auth);
-};
 
-musicd.logOut = function() {
-    document.cookie = "musicd-session=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
-
-    location.reload();
 };
 
 musicd.checkCompatibility = function() {
@@ -79,76 +37,127 @@ musicd.checkCompatibility = function() {
         $("#invalid-browser").show().find(".reason").text(reasons.join(", "));
 };
 
-musicd.loadQueryString = function(player, search) {
-    var m = location.href.match(/#(.+)$/);
-    if (m) {
-        var args = musicd.parseQueryString(m[1]);
-
-        if (args.mode)
-            player.mode(musicd.PlayerMode[args.mode]);
-
-        if (args.search)
-            search.search(args.search);
-
-        if (args.trackid) {
-            search.getItem(parseInt(args.trackid, 10), function(track) {
-                if (track) {
-                    player.track(track);
-
-                    if (args.autoplay)
-                        player.play();
-                }
-            });
-        }
-    }
+musicd.Main = function() {
+    this.player = new musicd.Player();
+    this.search = new musicd.Search(this.player);
+    this.trackInfo = new musicd.TrackInfo(this.player.track, this.search.search);
+    this.remoteControl = new musicd.RemoteControl(this.player);
 };
 
-musicd.serializeState = function(player, search) {
-    var args = [];
+musicd.Main.prototype = {
+    loadQueryString: function() {
+        var self = this;
 
-    args.push("search=" + encodeURIComponent(search.search()));
+        var m = location.href.match(/#(.+)$/);
+        if (m) {
+            var args = musicd.parseQueryString(m[1]);
 
-    if (player.track())
-        args.push("trackid=" + player.track().id);
+            if (args.mode)
+                self.player.mode(musicd.PlayerMode[args.mode]);
 
-    if (player.mode() != musicd.PlayerMode.NORMAL)
-        args.push("mode=" + musicd.PlayerMode[player.mode()]);
+            if (args.search)
+                self.search.search(args.search);
 
-    if (player.state() == musicd.PlayerState.PLAY)
-        args.push("autoplay");
+            if (args.trackid) {
+                self.search.getItem(parseInt(args.trackid, 10), function(track) {
+                    if (track) {
+                        self.player.track(track);
 
-    return args.join("&");
+                        if (args.autoplay)
+                            self.player.play();
+                    }
+                });
+            }
+        }
+    },
+
+    authenticate: function() {
+        // TODO: Make this use knockout as well
+
+        var dialog = $("#authentication");
+        if (dialog.is(":visible"))
+            return;
+
+        function auth(e) {
+            e.preventDefault();
+
+            dialog.find(".error").hide();
+
+            var user = $(".user").val();
+
+            api.authenticate(
+                user,
+                dialog.find(".password").val(),
+                function() {
+                    dialog.off("click dblclick");
+                    dialog.find("form").off("submit");
+                    dialog.fadeOut();
+                    musicd.shader.hide();
+                    $("#server-status").fadeIn();
+                    $("#server-status .user").text(user);
+                },
+                function() {
+                    dialog.find(".error").slideDown();
+                    dialog.find(user ? ".password" : ".user").focus().select();
+                }
+            );
+        }
+
+        musicd.shader.show();
+
+        dialog.on("click dblclick", musicd.stopPropagation);
+        dialog.fadeIn()
+        dialog.find(".error").hide();
+        dialog.find("input[type=text]").eq(0).focus();
+        dialog.find("form").on("submit", auth);
+    },
+
+    logOut: function() {
+        document.cookie = "musicd-session=; expires=Sat, 1 Jan 2000 00:00:00 GMT";
+
+        location.reload();
+    },
+
+    linkToCurrentClick: function() {
+        location.href = "#" + this._serializeState();
+    },
+
+    _serializeState: function() {
+        var args = [];
+
+        args.push("search=" + encodeURIComponent(this.search.search()));
+
+        if (this.player.track())
+            args.push("trackid=" + this.player.track().id);
+
+        if (this.player.mode() != musicd.PlayerMode.NORMAL)
+            args.push("mode=" + musicd.PlayerMode[this.player.mode()]);
+
+        if (this.player.state() == musicd.PlayerState.PLAY)
+            args.push("autoplay");
+
+        return args.join("&");
+    }
 };
 
 $(function() {
     musicd.checkCompatibility();
-    
+
     var m = location.href.match(/\?([^#]+)/),
         qs = m ? musicd.parseQueryString(m[1]) : {};
 
-    musicd.api = new musicd.APIClient(qs.server || "/", musicd.authenticate);
-    
-    var player = new musicd.Player();
-    var search = new musicd.Search(player);
-    var trackInfo = new musicd.TrackInfo(player.track, search.search);
+    var main = new musicd.Main();
 
-    musicd.loadQueryString(player, search);
+    musicd.api = new musicd.APIClient(qs.server || "/", main.authenticate.bind(main));
+
+    main.loadQueryString();
 
     // TODO: Make this a setting
     if (qs.remote)
-        new musicd.RemoteControl(player).enable();
+        main.remoteControl.enable();
 
-    // ugh
-    musicd.linkToCurrentClick = function() {
-        location.href = "#" + musicd.serializeState(player, search);
-    };
-
-    ko.applyBindings(player, $("#player")[0]);
-    ko.applyBindings(player.state, $("#favicon")[0]);
-
-    ko.applyBindings(trackInfo, $("#track-info")[0]);
-    
-    ko.applyBindings(search, $("#search")[0]);
+    ko.applyBindings(main);
+    ko.applyBindings(main.player.state, $("#favicon")[0]);
 });
 
 })();

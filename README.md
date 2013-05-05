@@ -1,5 +1,4 @@
-musicdweb - a browser-based interface for musicd
-================================================
+## musicdweb - a browser-based interface for musicd
 
 Slowly making progress towards a "1.0" version.
 

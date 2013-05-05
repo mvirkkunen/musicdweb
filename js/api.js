@@ -58,6 +58,7 @@ musicd.APIClient.prototype = {
             type: "GET",
             url: this._urlPrefix + "tracks?limit=1",
             dataType: "json",
+            xhrFields: { withCredentials: true},
             success: function(r) { callback(true); },
             error: function(xhr) {
                 if (xhr.status != 403)
@@ -98,6 +99,7 @@ musicd.APIClient.prototype = {
             url: this._urlPrefix + r.method,
             data: r.args,
             dataType: "json",
+            xhrFields: { withCredentials: true},
             success: this._requestSuccess.bind(this),
             error: this._requestError.bind(this)
         });
@@ -145,6 +147,7 @@ musicd.APIClient.prototype = {
                 password: password
             },
             dataType: "json",
+            xhrFields: { withCredentials: true},
             success: function(res) {
                 if (res.auth != "ok") {
                     error();
