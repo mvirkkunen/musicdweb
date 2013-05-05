@@ -8,7 +8,9 @@ ko.bindingHandlers.slideVisible = {
     },
 
     update: function(el, valueAccessor) {
-        $(el).stop(true, true)[ko.utils.unwrapObservable(valueAccessor()) ? "slideDown" : "slideUp"](200);
+        $(el).stop(true, true)[ko.utils.unwrapObservable(valueAccessor()) ? "slideDown" : "slideUp"](200, function() {
+            musicd.notifyLayoutChange();
+        });
     }
 };
 

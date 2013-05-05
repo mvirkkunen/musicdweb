@@ -6,7 +6,8 @@ musicd.TrackInfo = function(track, search) {
     self.track = track;
     self.search = search;
 
-    self.detailsVisible = musicd.setting("TrackInfo.detailsVisible", true);
+    self.showAlbumArt = musicd.setting("TrackInfo.showAlbumArt", true);
+    self.showLyrics = musicd.setting("TrackInfo.showLyrics", false);
 
     self.albumArt = new musicd.AlbumArt(track);
 
@@ -21,7 +22,22 @@ musicd.TrackInfo = function(track, search) {
     });
 
     ko.computed(function() {
-        var track = self.track();
+        if (self.showAlbumArt())
+            self.albumArt.track(self.track());
+    });
+
+    ko.computed(function() {
+        if (self.showLyrics()) {
+            self.track();
+
+            self.loadLyrics();
+        }
+    });
+};
+
+musicd.TrackInfo.prototype = {
+    loadLyrics: function() {
+        var self = this, track = self.track();
 
         self.lyrics(null);
 
@@ -44,12 +60,6 @@ musicd.TrackInfo = function(track, search) {
         }
 
         musicd.notifyLayoutChange();
-    });
-};
-
-musicd.TrackInfo.prototype = {
-    toggleDetails: function() {
-        this.detailsVisible(!this.detailsVisible());
     },
 
     albumArtDoubleClick: function() {
@@ -58,12 +68,12 @@ musicd.TrackInfo.prototype = {
     }
 };
 
-musicd.AlbumArt = function(track) {
+musicd.AlbumArt = function() {
     var self = this;
 
     self.template = "widget-album-art";
 
-    self.track = track;
+    self.track = ko.observable(null);
     self.url = ko.observable("");
 
     ko.computed(function() {

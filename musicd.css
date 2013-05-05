@@ -86,6 +86,7 @@ body {
 
 #track-info .titles {
     overflow: hidden;
+    margin-bottom: 10px;
 }
 
 #track-info h2 {
@@ -98,19 +99,6 @@ body {
 
 #track-info h2 span {
     font-weight: bold;
-}
-
-#track-info .toggle-details {
-    display: block;
-    color: #888;
-    text-decoration: none;
-    margin: 10px 0;
-    font-size: 0.9em;
-}
-
-#track-info .details {
-    border-bottom: 1px solid #CCC;
-    padding-bottom: 10px;
 }
 
 #track-info .album-art {
@@ -238,18 +226,48 @@ body {
     border-color: #000 transparent transparent transparent;
 }
 
-#lists {
+#tabs {
     overflow: hidden;
+    padding-left: 4px;
+}
+
+#tabs li {
+    float: left;
+    list-style: none;
+    position: relative;
+    z-index: 1;
+}
+
+#tabs li a {
+    display: block;
+    padding: 6px 30px;
+    margin-left: -4px;
+    text-decoration: none;
+    background: #EEE;
+    border-radius: 5px 5px 0 0;
+    color: inherit;
+}
+
+#tabs li.current {
+    z-index: 2;
+}
+
+#tabs li.current a {
+    background: #FFF;
+}
+
+.tab-content {
+    background: #FFF;
 }
 
 #search .search {
-    margin: 4px 0;
+    padding: 10px;
 }
 
 #search .search input {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    width: 100%;
+    width: 400px;
     padding: 4px;
     border: 1px solid #CCC;
     -moz-appearance: textfield;
@@ -378,6 +396,16 @@ body {
 .track-list .artist { width: 20%; }
 .track-list .album { width: 20%; }
 .track-list .duration { width: 50px; text-align: right; }
+
+#settings {
+    background: #FFF;
+    min-height: 200px;
+    padding: 10px;
+}
+
+#settings label {
+    font-weight: bold;
+}
 
 #shader {
     position: fixed;    

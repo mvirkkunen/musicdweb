@@ -42,17 +42,13 @@
                     on <span data-bind="text: album"></span>
                 </h2>
             </div>
-            <div class="title" data-bind="ifnot: track">
+            <div class="titles" data-bind="ifnot: track">
                 <h2>(no track)</h2>
             </div>
 
-            <p>
-                <a href="#" class="toggle-details" data-bind="click: toggleDetails">Toggle details</a>
-            </p>
+            <div data-bind="slideVisible: showAlbumArt, widget: albumArt, event: { dblclick: albumArtDoubleClick }"></div>
 
-            <div class="details" data-bind="slideVisible: detailsVisible">
-                <div data-bind="widget: albumArt, event: { dblclick: albumArtDoubleClick }"></div>
-
+            <div data-bind="slideVisible: showLyrics">
                 <div class="lyrics" data-bind="with: lyrics, offset: lyricsOffset, style: { maxHeight: lyricsMaxHeight }">
                     <div class="text" data-bind="text: lyrics"></div>
                     <div class="source" data-bind="if: source">
@@ -96,46 +92,67 @@
                 <div class="volume" data-bind="slider: { value: volume, orientation: 'vertical', min: 0, max: 100 }"></div>
             </div>
             
-            <div id="lists">
-                <div id="search" data-bind="with: search">
-                    <h2>
-                        Songs on the server - 
-                        Total results: <strong data-bind="text: totalResults"></strong>
-                    </h2>
-
-                    <div class="search" data-bind="event: { keydown: vlist.handleKeyEvent.bind(vlist) }">
-                        <input type="search" placeholder="Search tracks" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" />
-                    </div>
-
-                    <div class="track-list" data-bind="click: _rootClick, widget: vlist"></div>
-                </div>
-            </div>
-            
-            <div id="authentication" class="dialog" style="display: none;">
-                <h2>Authentication required</h2>
-
-                <div class="error" style="display: none;">
-                    Authentication failure. Check username and password.
+            <ul id="tabs" data-bind="foreach: tabs">
+                <li data-bind="css: { current: $root.currentTab() == name }">
+                    <a href="#" data-bind="click: $root.tabClick, text: text"></a>
+                </li>
+            </ul>
+            <div class="tab-content" id="search" data-bind="with: search, visible: currentTab() == 'search'">
+                <div class="search" data-bind="event: { keydown: vlist.handleKeyEvent.bind(vlist) }">
+                    <input type="search" placeholder="Search tracks" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" /> 
+                    Total results: <strong data-bind="text: totalResults"></strong>
                 </div>
 
-                <p>This server requires authentication.</p>
-
-                <form>
-                    <label class="field">
-                        <span class="label">Username:</span>
-                        <input type="text" class="value user" />
-                    </label>
-                    <label class="field">
-                        <span class="label">Password:</span>
-                        <input type="password" class="value password" />
-                    </label>
-                    <div class="field">
-                        <div class="value">
-                            <button type="submit" class="submit">Login</button>
-                        </div>
-                    </div>
-                </form>
+                <div class="track-list" data-bind="click: _rootClick, widget: vlist"></div>
             </div>
+            <div class="tab-content" id="settings" data-bind="visible: currentTab() == 'settings'">
+                <p>
+                    <label>
+                        <input type="checkbox" data-bind="checked: trackInfo.showAlbumArt" /> Show album art
+                    </label>
+                </p>
+
+                <p>
+                    <label>
+                        <input type="checkbox" data-bind="checked: trackInfo.showLyrics" /> Show lyrics
+                    </label>
+                    (showing lyrics may send information about your music collection to a 3rd party service)
+                </p>
+
+                <p>
+                    <label>
+                        <input type="checkbox" data-bind="checked: enableRemoteControl" /> Enable remote control
+                    </label>
+
+                    (<a href="remote.md" target="blank">more information</a>)
+                </p>
+            </div>
+        </div>
+
+        <div id="authentication" class="dialog" style="display: none;">
+            <h2>Authentication required</h2>
+
+            <div class="error" style="display: none;">
+                Authentication failure. Check username and password.
+            </div>
+
+            <p>This server requires authentication.</p>
+
+            <form>
+                <label class="field">
+                    <span class="label">Username:</span>
+                    <input type="text" class="value user" />
+                </label>
+                <label class="field">
+                    <span class="label">Password:</span>
+                    <input type="password" class="value password" />
+                </label>
+                <div class="field">
+                    <div class="value">
+                        <button type="submit" class="submit">Login</button>
+                    </div>
+                </div>
+            </form>
         </div>
 
         <div id="shader" style="display: none;"></div>

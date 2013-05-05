@@ -38,10 +38,25 @@ musicd.checkCompatibility = function() {
 };
 
 musicd.Main = function() {
-    this.player = new musicd.Player();
-    this.search = new musicd.Search(this.player);
-    this.trackInfo = new musicd.TrackInfo(this.player.track, this.search.search);
-    this.remoteControl = new musicd.RemoteControl(this.player);
+    var self = this;
+
+    self.player = new musicd.Player();
+    self.search = new musicd.Search(self.player);
+    self.trackInfo = new musicd.TrackInfo(self.player.track, self.search.search);
+    self.remoteControl = new musicd.RemoteControl(self.player);
+
+    self.enableRemoteControl = musicd.setting("Main.enableRemoteControl", false);
+
+    self.tabs = [
+        { name: "search", text: "Tracks" },
+        { name: "settings", text: "Settings" }
+    ]
+    self.currentTab = ko.observable("search");
+
+    self.tabClick = function(tab) {
+        self.currentTab(tab.name);
+        musicd.notifyLayoutChange();
+    };
 };
 
 musicd.Main.prototype = {
