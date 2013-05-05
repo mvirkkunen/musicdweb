@@ -108,7 +108,9 @@ musicd.APIClient.prototype = {
     _requestSuccess: function(res) {
         var r = this.queue.shift();
 
-        r.success(res);
+        try {
+            r.success(res);
+        } catch (e) { musicd.log(e); }
 
         this.request = null;
         this.xhr = null;
@@ -126,7 +128,14 @@ musicd.APIClient.prototype = {
             this.authCallback(this);
         } else {
             if (xhr.getAllResponseHeaders()) {
-                if (!r.error || !r.error())
+                var handled = false;
+
+                try {
+                    if (r.error)
+                        handled = r.error();
+                } catch (e) { musicd.log(e); }
+
+                if (!handled)
                     alert("API error");
             }
 
