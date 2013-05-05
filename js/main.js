@@ -46,6 +46,9 @@ musicd.Main = function() {
     self.remoteControl = new musicd.RemoteControl(self.player);
 
     self.enableRemoteControl = musicd.setting("Main.enableRemoteControl", false);
+    ko.computed(function() {
+        self.remoteControl[self.enableRemoteControl() ? "enable" : "disable"]();
+    });
 
     self.tabs = [
         { name: "search", text: "Tracks" },
