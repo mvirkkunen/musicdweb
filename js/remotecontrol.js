@@ -14,7 +14,7 @@ musicd.RemoteControl.prototype = {
         if (this.eventSource)
             return;
 
-        this.eventSource = new EventSource(REMOTE_URL);
+        this.eventSource = new EventSource(REMOTE_URL + "events");
         this.eventSource.addEventListener("command", this._command.bind(this));
         this.eventSource.onopen = this._updateState.bind(this);
 
@@ -30,7 +30,7 @@ musicd.RemoteControl.prototype = {
 
     _updateState: function() {
         if (this.eventSource)
-            $.post(REMOTE_URL + musicd.PlayerState[this._player.state()].toLowerCase());
+            $.post(REMOTE_URL + "state/" + musicd.PlayerState[this._player.state()].toLowerCase());
     },
 
     _command: function(e) {
