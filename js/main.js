@@ -103,7 +103,7 @@ musicd.Main.prototype = {
 
             var user = $(".user").val();
 
-            api.authenticate(
+            musicd.api.authenticate(
                 user,
                 dialog.find(".password").val(),
                 function() {
