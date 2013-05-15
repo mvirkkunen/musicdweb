@@ -33,7 +33,9 @@ ko.bindingHandlers.on = {
                 return;
 
             el.on(m[1], m[2], function(e) {
-                handler.call(viewModel, $(this).data("eventData") || ko.dataFor(this), e);
+                var data = $(this).data("eventData");
+
+                handler.call(viewModel, (data !== undefined) ? data : ko.dataFor(this), e);
             });
         });
     }
@@ -41,7 +43,7 @@ ko.bindingHandlers.on = {
 
 ko.bindingHandlers.eventData = {
     update: function(el, valueAccessor) {
-        $(el).data("eventData", valueAccessor());
+        $(el).data("eventData", ko.utils.unwrapObservable(valueAccessor()));
     }
 };
 

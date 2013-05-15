@@ -189,7 +189,7 @@
                         <table data-bind="style: { top: _layout.tableTop() + 'px' }">
                             <tbody data-bind="on: { 'mouseover tr': _rowMouseOver, 'dblclick tr': _rowDoubleClick }">
                                 <tr data-bind="repeat: { foreach: _rows, item: 'item' }"
-                                    data-repeat-bind="css: _getRowClass(item()), eventData: item()">
+                                    data-repeat-bind="css: _getRowClass(item()), eventData: item">
                                     <td data-bind="repeat: { foreach: columns, item: 'col' }"
                                         data-repeat-bind="text: _formatCellText(col(), item()), css: col().name"></td>
                                 </tr>
