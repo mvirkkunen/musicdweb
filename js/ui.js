@@ -67,6 +67,26 @@ ko.bindingHandlers.widget = {
     }
 };
 
+ko.bindingHandlers.menu = {
+    init: function(element) {
+        $(element).find(">a").click(function(e) {
+            e.preventDefault();
+
+            var ul = $(element).find(">ul");
+
+            if (!ul.is(":visible")) {
+                ul.slideDown(100);
+
+                setTimeout(function() {
+                    $(document).one("click", function() {
+                        ul.fadeOut(100);
+                    });
+                }, 0);
+            }
+        });
+    }
+};
+
 var layoutSubscribable = new ko.subscribable();
 
 musicd.notifyLayoutChange = function() {
@@ -120,7 +140,7 @@ ko.bindingHandlers.scrollTop = {
     init: function(el, valueAccessor, allBindingsAccessor) {
         var value = valueAccessor(), hysteresis = allBindingsAccessor().scrollTopHysteresis || 0;
 
-        if (ko.isWriteableObservable(value)) {        
+        if (ko.isWriteableObservable(value)) {
             value($(el).scrollTop());
 
             $(el).on("scroll", function() {
@@ -133,6 +153,7 @@ ko.bindingHandlers.scrollTop = {
     },
 
     update: function(el, valueAccessor) {
+        console.log("update!");
         $(el).scrollTop(ko.utils.unwrapObservable(valueAccessor()));
     }
 };

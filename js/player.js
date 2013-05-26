@@ -235,6 +235,11 @@ musicd.Player.prototype = {
             self.currentTime(0);
     },
 
+    jumpToCurrent: function() {
+        if (this.track() && this.trackSource)
+            this.trackSource.jumpToTrack(this.track().id);
+    },
+
     execCommand: function(cmd) {
         if (musicd.Player.COMMANDS.indexOf(cmd) != -1)
             this[cmd].call(this);
