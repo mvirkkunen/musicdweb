@@ -29,7 +29,7 @@ musicd.ListCache.prototype = {
             haveTotalCount();
     },
 
-    getItemIndex: function(id) {
+    _getCachedItemIndex: function(id) {
         for (var page in this._loaded) {
             for (var i = page * this._pageSize, e = (page + 1) * this._pageSize;
                  i < e;
@@ -41,6 +41,18 @@ musicd.ListCache.prototype = {
         }
 
         return null;
+    },
+
+    getItemIndex: function(id, callback) {
+        var self = this,
+            index = self._getCachedItemIndex(id);
+
+        if (index !== null) {
+            callback(index);
+            return;
+        }
+
+        this._itemProvider.getItemIndex(id, callback);
     },
 
     getItemByIndex: function(index, callback) {

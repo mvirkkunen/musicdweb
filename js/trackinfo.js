@@ -62,9 +62,14 @@ musicd.TrackInfo.prototype = {
         musicd.notifyLayoutChange();
     },
 
-    albumArtDoubleClick: function() {
+    searchAlbum: function() {
         if (this.track())
             this.search("albumid:" + this.track().albumid);
+    },
+
+    searchArtist: function() {
+        if (this.track())
+            this.search("artistid:" + this.track().artistid);
     }
 };
 

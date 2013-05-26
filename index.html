@@ -31,7 +31,15 @@
         </div>
 
         <div id="track-info" data-bind="with: trackInfo">
-            <div class="titles" data-bind="with: track">
+            <div class="menu" data-bind="menu: true, fadeVisible: track()">
+                <a href="#">▼</a>
+                <ul style="display: none;">
+                    <li><a href="#" data-bind="click: searchAlbum">Tracks in album</a>
+                    <li><a href="#" data-bind="click: searchArtist">Tracks by this artist</a>
+                    <li><a href="#" data-bind="click: $root.linkToCurrentClick.bind($root)">Link to current</a></li>
+                </ul>
+            </div>
+            <div class="titles" data-bind="visible: track, with: track">
                 <h2 data-bind="visible: title">
                     <span data-bind="text: title"></span>
                 </h2>
@@ -42,11 +50,11 @@
                     on <span data-bind="text: album"></span>
                 </h2>
             </div>
-            <div class="titles" data-bind="ifnot: track">
+            <div class="titles" data-bind="visible: !track()">
                 <h2>(no track)</h2>
             </div>
 
-            <div data-bind="slideVisible: showAlbumArt, widget: albumArt, event: { dblclick: albumArtDoubleClick }"></div>
+            <div data-bind="slideVisible: showAlbumArt, widget: albumArt"></div>
 
             <div data-bind="slideVisible: showLyrics">
                 <div class="lyrics" data-bind="with: lyrics, offset: lyricsOffset, style: { maxHeight: lyricsMaxHeight }">
@@ -73,6 +81,7 @@
                     <button class="stop" accesskey="s" title="Stop (s)" data-bind="click: stop">■</button>
                     <button class="prev" accesskey="b" title="Previous (b)" data-bind="click: rewindOrPrev">◀◀</button>
                     <button class="next" accesskey="n" title="Next (n)" data-bind="click: next">▶▶</button>
+                    <button class="jump-to-current" accesskey="j" title="Jump to current (j)" data-bind="click: jumpToCurrent, attr: { disabled: !track() }">→○</button>
 
                     <span id="loading" data-bind="style: { 'visibility': musicd.api.loading() ? 'visible' : 'hidden' }"></span>
 
@@ -84,8 +93,6 @@
                         <option value="2">Repeat list</option>
                         <option value="3">Repeat track</option>
                     </select>
-
-                    <a class="link-to-current" href="#" data-bind="click: $root.linkToCurrentClick.bind($root)">Link to current</a>
                 </div>
 
                 <div class="seek" data-bind="timeslider: { timeValue: currentTime, max: duration, disabled: notSeekable }"></div>

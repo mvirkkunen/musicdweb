@@ -38,15 +38,17 @@ musicd.Search.prototype = {
     // TrackSource methods
     
     getAdjacentTrack: function(id, delta, callback) {
-        var index = this.cache.getItemIndex(id);
-        
-        if (index === null) {
-            callback(null);
-            return;
-        }
-        
-        this.cache.getItemByIndex(index + delta, function(item) {
-            callback(item);
+        var self = this;
+
+        self.cache.getItemIndex(id, function(index) {
+            if (index === null) {
+                callback(null);
+                return;
+            }
+
+            self.cache.getItemByIndex(index + delta, function(item) {
+                callback(item);
+            });
         });
     },
     
@@ -58,24 +60,26 @@ musicd.Search.prototype = {
         this.cache.getRandomItem(callback);
     },
 
+    jumpToTrack: function(id) {
+        var self = this;
+
+        self.cache.getItemIndex(id, function(index) {
+            if (index === null)
+                return;
+
+            self.vlist.presentIndex(index);
+        });
+    },
+
     // ItemProvider methods
 
     getItems: function(offset, limit, reqTotal, callback) {
         var self = this,
-            text = self.search(),
-            args = {
-                sort: "album,track,title",
+            args = $.extend({
                 offset: offset,
                 limit: limit,
                 total: reqTotal ? 1 : null
-            };
-        
-        // TODO: remove when parsing implemented on server side
-        var m;
-        if (m = text.match(/^albumid:(\d+)$/i))
-            args.albumid = m[1];
-        else
-            args.search = text;
+            }, self._getSearchArgs())
 
         musicd.api.call(
             "Search.tracks",
@@ -90,8 +94,21 @@ musicd.Search.prototype = {
         );
     },
 
+    getItemIndex: function(id, callback) {
+        var self = this;
+
+        musicd.api.call(
+            "Search.trackIndex",
+            "track/index",
+            $.extend({ id: id }, this._getSearchArgs()),
+            function(res) {
+                callback(res.index == -1 ? null : res.index);
+            }
+        );
+    },
+
     getItem: function(id, callback) {
-        return musicd.api.call(
+        musicd.api.call(
             null,
             "tracks",
             { trackid: id},
@@ -110,6 +127,24 @@ musicd.Search.prototype = {
                 this.player.play();
             }
         }.bind(this));
+    },
+
+    _getSearchArgs: function() {
+        var text = this.search(),
+            args = {
+                sort: "album,track,title"
+            };
+
+        // TODO: remove if parsing implemented on server side
+        var m;
+        if (m = text.match(/^albumid:(\d+)$/i))
+            args.albumid = m[1];
+        else if (m = text.match(/^artistid:(\d+)$/i))
+            args.artistid = m[1];
+        else
+            args.search = text;
+
+        return args;
     },
     
     _playerTrackChange: function(track) {

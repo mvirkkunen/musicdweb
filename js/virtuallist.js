@@ -27,8 +27,11 @@ musicd.VirtualList = function(cache, columns) {
         tableTop: ko.observable(0),
         rowsWidth: ko.observable(0),
         rowsOffset: ko.observable(0),
-        rowsScrollTop: ko.observable(0).extend({ throttle: 50 })
+        rowsScrollTop: ko.observable(0)
     };
+
+    self._layout.rowsScrollTop.equalityComparer = null;
+    self._layout.rowsScrollTop = self._layout.rowsScrollTop.extend({ throttle: 50});
 
     self._layout.rowsHeight = ko.computed(function() {
         return (musicd.windowHeight() - self._layout.rowsOffset().top - 10);
@@ -128,6 +131,17 @@ musicd.VirtualList.prototype = {
         this.scrollToView();
     },
 
+    _setScrollTop: function(scrollTop) {
+        var self = this;
+
+        clearTimeout(self._inhibitRowHighlight);
+        self._inhibitRowHighlight = setTimeout(function() {
+            self._inhibitRowHighlight = null;
+        }, 200);
+
+        self._layout.rowsScrollTop(scrollTop);
+    },
+
     scrollToView: function() {
         var self = this,
             scrollTop = self._layout.rowsScrollTop(),
@@ -146,7 +160,15 @@ musicd.VirtualList.prototype = {
             self._inhibitRowHighlight = null;
         }, 200);
 
-        self._layout.rowsScrollTop(scrollTop);
+        self._setScrollTop(scrollTop);
+    },
+
+    presentIndex: function(index) {
+        var scrollHeight = this._layout.rowsHeight(),
+            itemHeight = this._layout.itemHeight(),
+            topIndex = Math.max(index - Math.floor(scrollHeight  / itemHeight / 2), 0);
+
+        this._setScrollTop(topIndex * itemHeight);
     },
 
     _rowDoubleClick: function(item) {
