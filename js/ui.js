@@ -153,7 +153,6 @@ ko.bindingHandlers.scrollTop = {
     },
 
     update: function(el, valueAccessor) {
-        console.log("update!");
         $(el).scrollTop(ko.utils.unwrapObservable(valueAccessor()));
     }
 };
