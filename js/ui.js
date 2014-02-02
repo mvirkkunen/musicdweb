@@ -304,4 +304,36 @@ ko.bindingHandlers.preloadedImage = {
     }
 };
 
+var imageCache = [];
+
+ko.bindingHandlers.cachedImage = {
+    init: function(el, valueAccessor) {
+        var src = valueAccessor(), img;
+        if (!src)
+            return;
+
+        var cachedIndex = imageCache.findIndex(function(i) { return i.src == src; });
+        if (cachedIndex != -1) {
+            img = imageCache[cachedIndex];
+
+            imageCache.splice(cachedIndex, 1);
+        } else {
+            img = document.createElement("img");
+            img.src = src;
+        }
+
+        ko.virtualElements.prepend(el, img);
+
+        ko.utils.domNodeDisposal.addDisposeCallback(el, function () {
+            if (!imageCache.find(function(i) { return i.src == src; })) {
+                imageCache.unshift(img);
+                imageCache.splice(200, 1);
+            }
+        });
+    }
+};
+
+ko.virtualElements.allowedBindings.cachedImage = true;
+
+
 })();

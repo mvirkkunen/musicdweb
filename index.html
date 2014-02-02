@@ -230,7 +230,7 @@
                                    foreach: _items">
                         <li data-bind="css: $parent._getItemClass($data), eventData: $data">
                             <!-- ko if: $data -->
-                                <img data-bind="if: image, attr: { src: $parent._getAlbumImageUrl($data) }" />
+                                <!-- ko cachedImage: $parent._getAlbumImageUrl($data) --><!-- /ko -->
                                 <div class="info" data-bind="text: album"></div>
                             <!-- /ko -->
                         </li>

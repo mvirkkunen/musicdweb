@@ -15,6 +15,17 @@ if (!Array.prototype.find) {
     };
 }
 
+if (!Array.prototype.findIndex) {
+    Array.prototype.findIndex = function(callback, thisObject) {
+        for (var i = 0; i < this.length; i++) {
+            if (callback.call(thisObject || window, this[i], i, this))
+                return i;
+        }
+
+        return -1;
+    };
+}
+
 Number.prototype.pad = function(length) {
     var s = "" + this;
     while (s.length < length)
