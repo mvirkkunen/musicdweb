@@ -4,6 +4,17 @@
 
 window.musicd = {};
 
+if (!Array.prototype.find) {
+    Array.prototype.find = function(callback, thisObject) {
+        for (var i = 0; i < this.length; i++) {
+            if (callback.call(thisObject || window, this[i], i, this))
+                return this[i];
+        }
+
+        return undefined;
+    };
+}
+
 Number.prototype.pad = function(length) {
     var s = "" + this;
     while (s.length < length)

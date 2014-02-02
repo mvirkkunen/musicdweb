@@ -8,17 +8,6 @@ $[theAWord + "Setup"]({
    crossDomain: true
 });
 
-if (!Array.prototype.find) {
-    Array.prototype.find = function(callback, thisObject) {
-        for (var i = 0; i < this.length; i++) {
-            if (callback.call(thisObject || window, this[i], i, this))
-                return this[i];
-        }
-
-        return undefined;
-    };
-}
-
 musicd.shader = {
     show: function() {
         $("#shader").fadeIn(200);
