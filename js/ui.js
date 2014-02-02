@@ -248,7 +248,7 @@ $.widget("ui.timeslider", $.ui.slider, {
     }
 });
 
-kojqui.bindingFactory.create({
+ko.jqui.bindingFactory.create({
     name: "timeslider",
     options: ["animate", "disabled", "max", "min", "orientation", "range", "step", "value", "values"],
     events: ["create", "start", "slide", "change", "stop"],
@@ -286,11 +286,11 @@ ko.bindingHandlers.preloadedImage = {
 
             if (value.loaded)
                 value.loaded(false);
-            
+
             if (src) {
                 img.on("load.preload error.preload", function(e) {
                     img.off(".preload");
-                    
+
                     if (e.type == "load" && ko.utils.unwrapObservable(value.src) === src) {
                         $(el).empty().append(img);
                         if (value.loaded)
