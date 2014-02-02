@@ -22,8 +22,8 @@
         <script src="js/player.js"></script>
         <script src="js/trackinfo.js"></script>
         <script src="js/search.js"></script>
+        <script src="js/albumbrowser.js"></script>
         <script src="js/remotecontrol.js"></script>
-        <!--<script src="js/albumbrowser.js"></script>-->
     </head>
     <body>
         <div id="invalid-browser" class="error" style="display: none;">
@@ -98,7 +98,7 @@
                 <div class="seek" data-bind="timeslider: { timeValue: currentTime, max: duration, disabled: notSeekable }"></div>
                 <div class="volume" data-bind="slider: { value: volume, orientation: 'vertical', min: 0, max: 100 }"></div>
             </div>
-            
+
             <ul id="tabs" data-bind="foreach: tabs">
                 <li data-bind="css: { current: $root.currentTab() == name }">
                     <a href="#" data-bind="click: $root.tabClick, text: text"></a>
@@ -106,11 +106,19 @@
             </ul>
             <div class="tab-content" id="search" data-bind="with: search, visible: currentTab() == 'search'">
                 <div class="search" data-bind="event: { keydown: vlist.handleKeyEvent.bind(vlist) }">
-                    <input type="search" placeholder="Search tracks" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" /> 
+                    <input type="search" placeholder="Search tracks" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" />
                     Total results: <strong data-bind="text: totalResults"></strong>
                 </div>
 
                 <div class="track-list" data-bind="click: _rootClick, widget: vlist"></div>
+            </div>
+            <div class="tab-content" id="albums" data-bind="with: albumBrowser, visible: currentTab() == 'albums'">
+                <div class="search" data-bind="event: { keydown: vlist.handleKeyEvent.bind(vlist) }">
+                    <input type="search" placeholder="Search albums" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" />
+                    Total results: <strong data-bind="text: totalResults"></strong>
+                </div>
+
+                <div class="album-list" data-bind="click: _rootClick, widget: vlist"></div>
             </div>
             <div class="tab-content" id="settings" data-bind="visible: currentTab() == 'settings'">
                 <p>
@@ -177,7 +185,7 @@
         <script type="text/html" id="widget-virtual-list">
             <div class="virtual-list">
                 <div class="heading">
-                    <table data-bind="style: { width: _layout.rowsWidth() + 'px' }">
+                    <table data-bind="style: { width: _layout.itemsWidth() + 'px' }">
                         <thead>
                             <tr data-bind="foreach: columns">
                                 <th data-bind="text: title, css: name"></th>
@@ -186,23 +194,35 @@
                     </table>
                 </div>
                 <div class="rows"
-                     data-bind="offset: _layout.rowsOffset,
-                                clientWidth: _layout.rowsWidth,
-                                height: _layout.rowsHeight,
-                                scrollTop: _layout.rowsScrollTop,
+                     data-bind="offset: _layout.itemsOffset,
+                                clientWidth: _layout.itemsWidth,
+                                height: _layout.itemsHeight,
+                                scrollTop: _layout.itemsScrollTop,
                                 scrollTopHysteresis: 100,
-                                style: { height: _layout.rowsHeight() + 'px' }">
+                                style: { height: _layout.itemsHeight() + 'px' }">
                     <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
                         <table data-bind="style: { top: _layout.tableTop() + 'px' }">
-                            <tbody data-bind="on: { 'mouseover tr': _rowMouseOver, 'dblclick tr': _rowDoubleClick }">
-                                <tr data-bind="repeat: { foreach: _rows, item: 'item' }"
-                                    data-repeat-bind="css: _getRowClass(item()), eventData: item">
+                            <tbody data-bind="on: { 'mouseover tr': _itemMouseOver, 'dblclick tr': _itemDoubleClick }">
+                                <tr data-bind="repeat: { foreach: _items, item: 'item' }"
+                                    data-repeat-bind="css: _getItemClass(item()), eventData: item">
                                     <td data-bind="repeat: { foreach: columns, item: 'col' }"
                                         data-repeat-bind="text: _formatCellText(col(), item()), css: col().name"></td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/html" id="widget-virtual-grid">
+            <div class="virtual-grid">
+                <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
+                    <ul>
+                        <li data-bind="repeat: { foreach: _items, item: 'item' }">
+                            <span data-bind="text: album"></span>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </script>

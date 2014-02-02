@@ -11,9 +11,9 @@ musicd.Search = function(player) {
 
     self.search = ko.observable("");
     self.searchFocus = ko.observable(true);
-    
+
     self.totalResults = ko.observable(0);
-    
+
     self.vlist = new musicd.VirtualList(
         this.cache,
         [
@@ -22,8 +22,9 @@ musicd.Search = function(player) {
             { name: "artist", title: "Artist" },
             { name: "album", title: "Album" },
             { name: "duration", title: "Length", formatter: musicd.formatTime },
-        ]);
-    
+        ],
+        "widget-virtual-list");
+
     self.vlist.itemActivate.subscribe(self._onItemActivate, self);
 
     self.search.subscribe(function() {
@@ -36,7 +37,7 @@ musicd.Search = function(player) {
 
 musicd.Search.prototype = {
     // TrackSource methods
-    
+
     getAdjacentTrack: function(id, delta, callback) {
         var self = this;
 
@@ -51,11 +52,11 @@ musicd.Search.prototype = {
             });
         });
     },
-    
+
     getFirstTrack: function(callback) {
         this.cache.getItemByIndex(0, callback);
     },
-    
+
     getRandomTrack: function(callback) {
         this.cache.getRandomItem(callback);
     },
@@ -88,7 +89,7 @@ musicd.Search.prototype = {
             function(res) {
                 if (offset == 0)
                     self.totalResults(res.total || 0);
-                
+
                 callback((offset == 0 ? (res.total || 0) : null), res.tracks);
             }
         );
@@ -146,7 +147,7 @@ musicd.Search.prototype = {
 
         return args;
     },
-    
+
     _playerTrackChange: function(track) {
         this.vlist.currentId(track ? track.id : null);
     },

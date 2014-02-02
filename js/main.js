@@ -12,7 +12,7 @@ musicd.shader = {
     show: function() {
         $("#shader").fadeIn(200);
     },
-    
+
     hide: function() {
         $("#shader").fadeOut(200);
     }
@@ -27,12 +27,12 @@ musicd.checkCompatibility = function() {
 
     if (!(Array.prototype.forEach && window.JSON && window.localStorage))
         reasons.push("your browser doesn't seem to support modern JavaScript! Shame on you!");
-    
+
     if (!window.Audio)
         reasons.push("your browser doesn't seem to support HTML5 Audio. Shame on you!");
     else if (!new Audio().canPlayType("audio/mpeg"))
         reasons.push("your browser doesn't seem to support MP3. Vorbis support is on the TODO list!");
-    
+
     if (reasons.length)
         $("#invalid-browser").show().find(".reason").text(reasons.join(", "));
 };
@@ -42,6 +42,7 @@ musicd.Main = function() {
 
     self.player = new musicd.Player();
     self.search = new musicd.Search(self.player);
+    self.albumBrowser = new musicd.AlbumBrowser(self.player);
     self.trackInfo = new musicd.TrackInfo(self.player.track, self.search.search);
     self.remoteControl = new musicd.RemoteControl(self.player);
 
@@ -52,6 +53,7 @@ musicd.Main = function() {
 
     self.tabs = [
         { name: "search", text: "Tracks" },
+        { name: "albumBrowser", text: "Albums" },
         { name: "settings", text: "Settings" }
     ]
     self.currentTab = ko.observable("search");

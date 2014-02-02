@@ -2,46 +2,46 @@
 
 (function() {
 
-musicd.VirtualList = function(cache, columns) {
+musicd.VirtualList = function(cache, columns, template) {
     var self = this;
 
-    self.template = "widget-virtual-list";
+    self.template = template;
 
     self._cache = cache;
-    
+
     self._drawExtraItems = 50;
 
     self.columns = ko.observableArray(columns);
-    self._rows = ko.observableArray();
-    
+    self._items = ko.observableArray();
+
     self.selectedIds = ko.observableArray();
     self.currentId = ko.observable(null);
 
     self._highlightedIndex = ko.observable(null);
-    
-    self._inhibitRowHighlight = null;
+
+    self._inhibitItemHighlight = null;
 
     self._layout = {
         itemHeight: ko.observable(24),
         padderHeight: ko.observable(0),
         tableTop: ko.observable(0),
-        rowsWidth: ko.observable(0),
-        rowsOffset: ko.observable(0),
-        rowsScrollTop: ko.observable(0)
+        itemsWidth: ko.observable(0),
+        itemsOffset: ko.observable(0),
+        itemsScrollTop: ko.observable(0)
     };
 
-    self._layout.rowsScrollTop.equalityComparer = null;
-    self._layout.rowsScrollTop = self._layout.rowsScrollTop.extend({ throttle: 50});
+    self._layout.itemsScrollTop.equalityComparer = null;
+    self._layout.itemsScrollTop = self._layout.itemsScrollTop.extend({ throttle: 50});
 
-    self._layout.rowsHeight = ko.computed(function() {
-        return (musicd.windowHeight() - self._layout.rowsOffset().top - 10);
+    self._layout.itemsHeight = ko.computed(function() {
+        return (musicd.windowHeight() - self._layout.itemsOffset().top - 10);
     });
-    
+
     self.itemActivate = new ko.subscribable();
 
     ko.computed(function() {
-        self._layout.rowsHeight();
-        self._layout.rowsScrollTop();
+        self._layout.itemsHeight();
+        self._layout.itemsScrollTop();
 
         self._refreshInternal();
     });
@@ -51,10 +51,10 @@ musicd.VirtualList.prototype = {
     refresh: function() {
         this._cache.clear();
         this._highlightedIndex(null);
-        this._layout.rowsScrollTop(0);
+        this._layout.itemsScrollTop(0);
         this._refreshInternal();
     },
-    
+
     handleKeyEvent: function(data, e) {
         var self = this;
 
@@ -96,7 +96,7 @@ musicd.VirtualList.prototype = {
         if (this._cache.totalCount === null)
             return;
 
-        var pos = this._layout.rowsScrollTop();
+        var pos = this._layout.itemsScrollTop();
 
         var visible = this._getVisibleRange(),
             offset = Math.max(0, visible.offset - this._drawExtraItems),
@@ -104,29 +104,28 @@ musicd.VirtualList.prototype = {
 
         this._layout.tableTop(offset * this._layout.itemHeight());
         this._layout.padderHeight(this._layout.itemHeight() * (this._cache.totalCount || 0));
-        
-        var rows = new Array(limit);
 
+        var items = new Array(limit);
         for (var i = offset, ri = 0; i < offset + limit; i++, ri++)
-            rows[ri] = this._cache.items[i] || null;
+            items[ri] = this._cache.items[i] || null;
 
-        this._rows(rows);
+        this._items(items);
     },
 
     _getVisibleRange: function() {
         var itemHeight = this._layout.itemHeight(),
-            exactFirst = Math.floor(this._layout.rowsScrollTop() / itemHeight);
+            exactFirst = Math.floor(this._layout.itemsScrollTop() / itemHeight);
 
         return {
             offset: Math.floor(exactFirst / 2) * 2,
-            limit: Math.ceil(this._layout.rowsHeight() / itemHeight) + 1
+            limit: Math.ceil(this._layout.itemsHeight() / itemHeight) + 1
         };
     },
-    
+
     _adjustHighlightedIndex: function(delta) {
         this._highlightedIndex(this._highlightedIndex() != null
             ? this._highlightedIndex() + delta
-            : Math.ceil(this._layout.rowsScrollTop() / this._layout.itemHeight()), true);
+            : Math.ceil(this._layout.itemsScrollTop() / this._layout.itemHeight()), true);
 
         this.scrollToView();
     },
@@ -134,54 +133,54 @@ musicd.VirtualList.prototype = {
     _setScrollTop: function(scrollTop) {
         var self = this;
 
-        clearTimeout(self._inhibitRowHighlight);
-        self._inhibitRowHighlight = setTimeout(function() {
-            self._inhibitRowHighlight = null;
+        clearTimeout(self._inhibitItemHighlight);
+        self._inhibitItemHighlight = setTimeout(function() {
+            self._inhibitItemHighlight = null;
         }, 200);
 
-        self._layout.rowsScrollTop(scrollTop);
+        self._layout.itemsScrollTop(scrollTop);
     },
 
     scrollToView: function() {
         var self = this,
-            scrollTop = self._layout.rowsScrollTop(),
-            scrollHeight = self._layout.rowsHeight(),
+            scrollTop = self._layout.itemsScrollTop(),
+            scrollHeight = self._layout.itemsHeight(),
             highlightedIndex = self._highlightedIndex(),
             itemHeight = self._layout.itemHeight();
-        
+
         if ((highlightedIndex + 1) * itemHeight > scrollTop + scrollHeight)
             scrollTop = (highlightedIndex + 1) * itemHeight - scrollHeight;
-        
+
         if (highlightedIndex * itemHeight < scrollTop)
             scrollTop = highlightedIndex * itemHeight;
-        
-        clearTimeout(self._inhibitRowHighlight);
-        self._inhibitRowHighlight = setTimeout(function() {
-            self._inhibitRowHighlight = null;
+
+        clearTimeout(self._inhibitItemHighlight);
+        self._inhibitItemHighlight = setTimeout(function() {
+            self._inhibitItemHighlight = null;
         }, 200);
 
         self._setScrollTop(scrollTop);
     },
 
     presentIndex: function(index) {
-        var scrollHeight = this._layout.rowsHeight(),
+        var scrollHeight = this._layout.itemsHeight(),
             itemHeight = this._layout.itemHeight(),
             topIndex = Math.max(index - Math.floor(scrollHeight  / itemHeight / 2), 0);
 
         this._setScrollTop(topIndex * itemHeight);
     },
 
-    _rowDoubleClick: function(item) {
+    _itemDoubleClick: function(item) {
         if (item)
             this.itemActivate.notifySubscribers(item);
     },
-    
-    _rowMouseOver: function(item) {
-        if (item && !this._inhibitRowHighlight)
+
+    _itemMouseOver: function(item) {
+        if (item && !this._inhibitItemHighlight)
             this._highlightedIndex(item.index);
     },
 
-    _getRowClass: function(item) {
+    _getItemClass: function(item) {
         if (!item)
             return "loading";
 
