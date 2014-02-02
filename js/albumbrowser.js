@@ -39,6 +39,7 @@ musicd.AlbumBrowser.prototype = {
                 offset: offset,
                 limit: limit,
                 total: reqTotal ? 1 : null,
+                sort: "album",
                 album: self.search()
             };
 
