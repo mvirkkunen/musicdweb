@@ -12,17 +12,18 @@ musicd.ListCache.prototype = {
         this._totalPages = null;
         this.items = [];
         this._loaded = {};
+        this._inFlight = {};
     },
-    
+
     getRandomItem: function(callback) {
         var haveTotalCount = function() {
             var index = Math.floor(Math.random() * this.totalCount);
-            
+
             this.ensureItems(index, 1, function() {
                 callback(this.items[index]);
             }.bind(this));
         }.bind(this);
-        
+
         if (this.totalCount === undefined)
             this.ensureItems(0, 1, haveTotalCount);
         else
@@ -56,13 +57,15 @@ musicd.ListCache.prototype = {
     },
 
     getItemByIndex: function(index, callback) {
-        if (index < 0 || !this.totalCount || index >= this.totalCount) {
+        if (index < 0 || (this.totalCount !== null && index >= this.totalCount)) {
             callback(null);
             return;
         }
 
         return this.ensureItems(index, 1, function() {
-            callback(this.items[index]);
+            callback(index < this.totalCount
+                ? this.items[index]
+                : null);
         }.bind(this));
     },
 
@@ -72,10 +75,10 @@ musicd.ListCache.prototype = {
             firstPage = Math.max(exactFirstPage, 0),
             lastPage = Math.ceil((offset + limit) / this._pageSize),
             first, last;
-        
+
         if (this._totalPages)
             lastPage = Math.min(lastPage, this._totalPages);
-        
+
         for (i = firstPage; i < lastPage; i++) {
             if (state == 0) {
                 if (!this._loaded[i]) {
@@ -96,10 +99,21 @@ musicd.ListCache.prototype = {
                 }
             }
         }
-        
-        if (request) { 
+
+        var key = first + "-" + last;
+
+        if (request) {
+            if (this._inFlight[key]) {
+                if (callback)
+                    this._inFlight[key].push(callback);
+
+                return;
+            } else {
+                this._inFlight[key] = [callback];
+            }
+
             var reqOffset = first * this._pageSize;
-            
+
             this._itemProvider.getItems(
                 reqOffset,
                 (last - first) * this._pageSize,
@@ -107,24 +121,31 @@ musicd.ListCache.prototype = {
                 function(totalCount, items) {
                     for (i = firstPage; i < lastPage; i++)
                         this._loaded[i] = true;
-                    
+
                     items.forEach(function(item, index) {
                         item.index = reqOffset + index;
                         this.items[reqOffset + index] = item;
                     }, this);
-                    
+
                     if (typeof totalCount == "number") {
                         this.totalCount = totalCount;
                         this._totalPages = Math.max(Math.ceil(totalCount / this._pageSize), 1);
                     }
-                    
-                    if (callback)
-                        callback();
+
+                    this._requestComplete(key);
                 }.bind(this)
             );
         } else {
             if (callback)
                 callback();
         }
+    },
+
+    _requestComplete: function(key) {
+        this._inFlight[key].forEach(function(callback) {
+            callback();
+        });
+
+        delete this._inFlight[key];
     }
 };

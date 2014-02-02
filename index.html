@@ -112,7 +112,7 @@
 
                 <div class="track-list" data-bind="click: _rootClick, widget: vlist"></div>
             </div>
-            <div class="tab-content" id="albums" data-bind="with: albumBrowser, visible: currentTab() == 'albums'">
+            <div class="tab-content" id="album-browser" data-bind="with: albumBrowser, visible: currentTab() == 'albumBrowser'">
                 <div class="search" data-bind="event: { keydown: vlist.handleKeyEvent.bind(vlist) }">
                     <input type="search" placeholder="Search albums" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" />
                     Total results: <strong data-bind="text: totalResults"></strong>
@@ -201,7 +201,7 @@
                                 scrollTopHysteresis: 100,
                                 style: { height: _layout.itemsHeight() + 'px' }">
                     <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
-                        <table data-bind="style: { top: _layout.tableTop() + 'px' }">
+                        <table data-bind="style: { top: _layout.itemsTop() + 'px' }">
                             <tbody data-bind="on: { 'mouseover tr': _itemMouseOver, 'dblclick tr': _itemDoubleClick }">
                                 <tr data-bind="repeat: { foreach: _items, item: 'item' }"
                                     data-repeat-bind="css: _getItemClass(item()), eventData: item">
@@ -216,11 +216,23 @@
         </script>
 
         <script type="text/html" id="widget-virtual-grid">
-            <div class="virtual-grid">
-                <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
-                    <ul>
-                        <li data-bind="repeat: { foreach: _items, item: 'item' }">
-                            <span data-bind="text: album"></span>
+            <div class="virtual-grid"
+                 data-bind="offset: _layout.itemsOffset,
+                            clientWidth: _layout.itemsWidth,
+                            height: _layout.itemsHeight,
+                            scrollTop: _layout.itemsScrollTop,
+                            scrollTopHysteresis: 100,
+                            style: { height: _layout.itemsHeight() + 'px' }">
+                 <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
+                    <ul class="items"
+                        data-bind="style: { top: _layout.itemsTop() + 'px' },
+                                   on: { 'mouseover li': _itemMouseOver, 'dblclick li': _itemDoubleClick },
+                                   foreach: _items">
+                        <li data-bind="css: $parent._getItemClass($data), eventData: $data">
+                            <!-- ko if: $data -->
+                                <img data-bind="if: image, attr: { src: $parent._getAlbumImageUrl($data) }" />
+                                <div class="info" data-bind="text: album"></div>
+                            <!-- /ko -->
                         </li>
                     </ul>
                 </div>

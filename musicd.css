@@ -305,11 +305,11 @@ body {
     background: #FFF;
 }
 
-#search .search {
+#search .search, #album-browser .search {
     padding: 10px;
 }
 
-#search .search input {
+#search .search input, #album-browser .search input {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     width: 400px;
@@ -318,12 +318,6 @@ body {
     -moz-appearance: textfield;
     -webkit-appearance: textfield;
     appearance: textfield;
-}
-
-#playlist {
-    width: 48%;
-    float: right;
-    display: none;
 }
 
 .virtual-list {
@@ -364,7 +358,7 @@ body {
     vertical-align: middle;
     text-align: left;
     cursor: default;
-    
+
     /* juuh elikkäs */
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -436,6 +430,78 @@ body {
     top: 0;
 }
 
+.virtual-grid {
+    position: relative;
+    border: 1px solid #CCC;
+    background: #FFF;
+    position: relative;
+    overflow: scroll;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+.virtual-grid .padder {
+    overflow: hidden;
+    position: relative;
+}
+
+.virtual-grid .items {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1100px;
+}
+
+.virtual-grid .items li {
+    float: left;
+    position: relative;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    width: 200px;
+    height: 200px;
+    margin: 10px;
+    text-align: center;
+    line-height: 200px;
+    list-style: none;
+    background: rgba(255, 255, 255, 0.2);
+    -webkit-transition: -webkit-transform 0.2s ease-in-out;
+    -webkit-transform-origin: 50% 50%;
+    z-index: 10;
+    background: #EEE;
+}
+
+.virtual-grid .items li .info {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    left: 0;
+    margin-top: -1px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    padding: 10px;
+    color: #FFF;
+    background: rgba(0, 0, 0, 0.7);
+    line-height: 1.2em;
+    /*opacity: 0;*/
+    -webkit-transition: opacity 0.15s ease-in-out;
+}
+
+.virtual-grid .items li img {
+    margin: 0;
+    max-width: 200px;
+    max-height: 200px;
+    vertical-align: middle;
+}
+
+.virtual-grid .items li:hover {
+    -webkit-transform: scale(1.25);
+    -webkit-transform-origin: 50% 50%;
+    z-index: 11;
+}
+
+.virtual-grid .items li:hover .info {
+    opacity: 1;
+}
+
 .track-list .track { width: 20px; }
 /*.track-list .title { width: 30%; }*/
 .track-list .artist { width: 20%; }
@@ -453,115 +519,13 @@ body {
 }
 
 #shader {
-    position: fixed;    
+    position: fixed;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     background: rgba(255, 255, 255, 0.6);
     z-index: 99;
-}
-
-#album-browser {
-    position: fixed;
-    z-index: 100;
-    top: 20px;
-    left: 50%;
-    width: 1160px;
-    margin-left: -560px;
-    height: 920px;
-    background: rgba(255, 255, 255, 0.6);
-}
-
-#album-browser .container {
-    position: relative;
-    padding: 20px;
-    height: 880px;
-    overflow: scroll;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-#album-browser .padder {
-    position: relative;
-}
-
-#album-browser ul {
-    position: absolute;
-}
-
-#album-browser ul li {
-    float: left;
-    position: relative;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    width: 200px;
-    height: 200px;
-    margin: 10px;
-    text-align: center;
-    line-height: 200px;
-    list-style: none;
-    background: rgba(255, 255, 255, 0.2);
-    -webkit-transition: -webkit-transform 0.2s ease-in-out;
-    -webkit-transform-origin: 50% 50%;
-    z-index: 10;
-}
-
-#album-browser ul li .info {
-    position: absolute;
-    top: 100%;
-    width: 100%;
-    left: 0;
-    margin-top: -1px;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    padding: 10px;
-    box-sizing: normal;
-    color: #FFF;
-    background: rgba(0, 0, 0, 0.7);
-    line-height: 1.2em;
-    opacity: 0;
-    border-radius: 0 0 5px 5px;
-    -webkit-transition: opacity 0.15s ease-in-out;
-}
-
-#album-browser ul li img {
-    margin: 0;
-    max-width: 200px;
-    max-height: 200px;
-    vertical-align: middle;
-}
-
-#album-browser.allow-hover li:hover {
-    -webkit-transform: scale(1.25);
-    -webkit-transform-origin: 50% 50%;
-    z-index: 11;
-}
-
-#album-browser.allow-hover li:hover .info {
-    opacity: 1;
-}
-
-#album-browser .dummy-album-art {
-    position: relative;
-    width: 200px;
-    height: 200px;
-    overflow: hidden;
-    padding: 10px;
-    font-size: 12px;
-    line-height: 1.5em;
-    cursor: default;
-}
-
-#album-browser .dummy-album-art h3 {
-    font-size: 15px;
-    margin-bottom: 10px;
 }
 
 .error {

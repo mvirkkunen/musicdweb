@@ -2,14 +2,12 @@
 
 (function() {
 
-musicd.VirtualList = function(cache, columns, template) {
+musicd.VirtualList = function(cache, columns, template, itemHeight, gridMode) {
     var self = this;
 
     self.template = template;
 
     self._cache = cache;
-
-    self._drawExtraItems = 50;
 
     self.columns = ko.observableArray(columns);
     self._items = ko.observableArray();
@@ -22,9 +20,10 @@ musicd.VirtualList = function(cache, columns, template) {
     self._inhibitItemHighlight = null;
 
     self._layout = {
-        itemHeight: ko.observable(24),
+        itemHeight: ko.observable(itemHeight),
+        itemsPerRow: ko.observable(gridMode ? 5 : 1),
         padderHeight: ko.observable(0),
-        tableTop: ko.observable(0),
+        itemsTop: ko.observable(0),
         itemsWidth: ko.observable(0),
         itemsOffset: ko.observable(0),
         itemsScrollTop: ko.observable(0)
@@ -80,9 +79,10 @@ musicd.VirtualList.prototype = {
     _refreshInternal: function() {
         var self = this,
             visible = self._getVisibleRange(),
+            ipr = self._layout.itemsPerRow(),
             completed = false;
 
-        self._cache.ensureItems(visible.offset, visible.limit, function() {
+        self._cache.ensureItems(visible.offset * ipr, visible.limit * ipr, function() {
             self._draw();
 
             completed = true;
@@ -99,14 +99,17 @@ musicd.VirtualList.prototype = {
         var pos = this._layout.itemsScrollTop();
 
         var visible = this._getVisibleRange(),
-            offset = Math.max(0, visible.offset - this._drawExtraItems),
-            limit = Math.min(visible.limit + this._drawExtraItems*2, this._cache.totalCount || 0);
+            ipr = this._layout.itemsPerRow(),
+            totalRows = Math.ceil((this._cache.totalCount || 0) / ipr),
+            extraRows = Math.ceil(this._layout.itemsHeight() / this._layout.itemHeight()),
+            offset = Math.max(0, visible.offset - extraRows),
+            limit = Math.min(visible.limit + extraRows * 2, totalRows);
 
-        this._layout.tableTop(offset * this._layout.itemHeight());
-        this._layout.padderHeight(this._layout.itemHeight() * (this._cache.totalCount || 0));
+        this._layout.itemsTop(offset * this._layout.itemHeight());
+        this._layout.padderHeight(this._layout.itemHeight() * totalRows);
 
         var items = new Array(limit);
-        for (var i = offset, ri = 0; i < offset + limit; i++, ri++)
+        for (var i = offset * ipr, ri = 0; i < (offset + limit) * ipr; i++, ri++)
             items[ri] = this._cache.items[i] || null;
 
         this._items(items);
@@ -193,6 +196,13 @@ musicd.VirtualList.prototype = {
             classes.push("current");
 
         return classes.join(" ");
+    },
+
+    _getAlbumImageUrl: function(album) {
+        if (!album.image)
+            return null;
+
+        return musicd.api.getAlbumImageURL(album.id, 256);
     },
 
     _formatCellText: function(col, item) {

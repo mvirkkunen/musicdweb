@@ -1,7 +1,9 @@
 "use strict";
 
-musicd.AlbumBrowser = function(search) {
+musicd.AlbumBrowser = function(main) {
     var self = this;
+
+    self._main = main;
 
     self.cache = new musicd.ListCache(self);
 
@@ -15,7 +17,9 @@ musicd.AlbumBrowser = function(search) {
         [
             { name: "album", title: "Album" }
         ],
-        "widget-virtual-grid");
+        "widget-virtual-grid",
+        220,
+        true);
 
     self.vlist.itemActivate.subscribe(self._onItemActivate, self);
 
@@ -34,7 +38,8 @@ musicd.AlbumBrowser.prototype = {
             args = {
                 offset: offset,
                 limit: limit,
-                total: reqTotal ? 1 : null
+                total: reqTotal ? 1 : null,
+                album: self.search()
             };
 
         musicd.api.call(
@@ -45,45 +50,17 @@ musicd.AlbumBrowser.prototype = {
                 if (offset == 0)
                     self.totalResults(res.total || 0);
 
-                callback((offset == 0 ? (res.total || 0) : null), res.tracks);
+                callback((offset == 0 ? (res.total || 0) : null), res.albums);
             }
         );
     },
 
-    getItemIndex: function(id, callback) {
-        var self = this;
+    // AlbumBrowser methods
 
-        musicd.api.call(
-            "Search.trackIndex",
-            "track/index",
-            $.extend({ id: id }, this._getSearchArgs()),
-            function(res) {
-                callback(res.index == -1 ? null : res.index);
-            }
-        );
-    },
-
-    getItem: function(id, callback) {
-        musicd.api.call(
-            null,
-            "tracks",
-            { trackid: id},
-            function(res) {
-                callback(res && res.tracks && res.tracks[0]);
-            }
-        );
-    },
-
-    // Search methods
-
-    _isValidSearch: function(text) {
-        return !!text.match(/...|[\u3040-\u30FF]{2}|[\u3300-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F]/);
-    },
-
-    _onItemActivate: function(track) {
-        this.player.track(track);
-
-        this.vlist.selectedIds([track.id])
+    _onItemActivate: function(album) {
+        this._main.search.search("albumid:" + album.id);
+        this._main.player.playFirst();
+        this._main.currentTab("search");
     },
 
     _rootClick: function() {

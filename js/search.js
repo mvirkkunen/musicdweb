@@ -23,7 +23,9 @@ musicd.Search = function(player) {
             { name: "album", title: "Album" },
             { name: "duration", title: "Length", formatter: musicd.formatTime },
         ],
-        "widget-virtual-list");
+        "widget-virtual-list",
+        24,
+        false);
 
     self.vlist.itemActivate.subscribe(self._onItemActivate, self);
 
@@ -120,15 +122,6 @@ musicd.Search.prototype = {
     },
 
     // Search methods
-
-    playFirst: function() {
-        this.getFirstTrack(function(track) {
-            if (track) {
-                this.player.setTrack(track);
-                this.player.play();
-            }
-        }.bind(this));
-    },
 
     _getSearchArgs: function() {
         var text = this.search(),

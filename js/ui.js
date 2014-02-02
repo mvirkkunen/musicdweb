@@ -62,7 +62,7 @@ ko.bindingHandlers.widget = {
     },
 
     update: function(element, valueAccessor, allBindingsAccessor, viewModel, context) {
-        return ko.bindingHandlers.template.update.call(this, element, createWidgetAccessor(valueAccessor), 
+        return ko.bindingHandlers.template.update.call(this, element, createWidgetAccessor(valueAccessor),
             allBindingsAccessor, viewModel, context);
     }
 };
@@ -194,14 +194,14 @@ $.widget("ui.timeslider", $.ui.slider, {
         this._superApply(arguments);
 
         this._setOptions({ min: 0, step: 0.1, range: "min", animate: "fast" });
-        
+
         this.element.append(this._tsTime =
             $("<div>").addClass("slider-time")
                 .append($("<div>"))
                 .append(this._tsTimeText = $("<span>")).hide());
-        
+
         this._tsMouseIn = false;
-        
+
         this._on({
             mousemove: this._tsMouseMove,
             mouseenter: function() {
@@ -209,24 +209,24 @@ $.widget("ui.timeslider", $.ui.slider, {
             },
             mouseleave: function() {
                 this._tsMouseIn = false;
-                
+
                 if (!this._mouseSliding)
                     this._tsTime.hide();
             },
         });
     },
-    
+
     _slide: function(e) {
         this._superApply(arguments);
         this._tsMouseMove(e);
     },
-    
+
     _stop: function() {
         this._superApply(arguments);
         if (!this._tsMouseIn)
             this._tsTime.hide();
     },
-    
+
     _tsMouseMove: function(e) {
         if (!this.elementSize) {
             this.elementSize = {
@@ -235,11 +235,11 @@ $.widget("ui.timeslider", $.ui.slider, {
             };
             this.elementOffset = this.element.offset();
         }
-        
+
         var value = this._normValueFromMouse({x: e.pageX, y: e.pageY}),
             valPercent = (value - this._valueMin())
                 / (this._valueMax() - this._valueMin()) * 100;
-        
+
         this._tsTimeText.text(musicd.formatTime(value));
         this._tsTime.css({
             "marginLeft": -this._tsTime.outerWidth() / 2,

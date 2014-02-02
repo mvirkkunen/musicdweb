@@ -8,6 +8,17 @@ $[theAWord + "Setup"]({
    crossDomain: true
 });
 
+if (!Array.prototype.find) {
+    Array.prototype.find = function(callback, thisObject) {
+        for (var i = 0; i < this.length; i++) {
+            if (callback.call(thisObject || window, this[i], i, this))
+                return this[i];
+        }
+
+        return undefined;
+    };
+}
+
 musicd.shader = {
     show: function() {
         $("#shader").fadeIn(200);
@@ -42,7 +53,7 @@ musicd.Main = function() {
 
     self.player = new musicd.Player();
     self.search = new musicd.Search(self.player);
-    self.albumBrowser = new musicd.AlbumBrowser(self.player);
+    self.albumBrowser = new musicd.AlbumBrowser(self);
     self.trackInfo = new musicd.TrackInfo(self.player.track, self.search.search);
     self.remoteControl = new musicd.RemoteControl(self.player);
 
@@ -56,12 +67,17 @@ musicd.Main = function() {
         { name: "albumBrowser", text: "Albums" },
         { name: "settings", text: "Settings" }
     ]
-    self.currentTab = ko.observable("search");
+
+    // TODO: remove weird URL param
+    self.currentTab = ko.observable(location.href.match(/\balbums\b/) ? "albumBrowser" : "search");
 
     self.tabClick = function(tab) {
         self.currentTab(tab.name);
-        musicd.notifyLayoutChange();
     };
+
+    setTimeout(function() {
+        self.currentTab.subscribe(musicd.notifyLayoutChange)
+    }, 0);
 };
 
 musicd.Main.prototype = {

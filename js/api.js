@@ -25,7 +25,7 @@ musicd.APIClient.prototype = {
                     delete args[key];
             }
         }
-        
+
         var r = {
             name: name,
             method: method,
@@ -33,12 +33,12 @@ musicd.APIClient.prototype = {
             success: success,
             error: error
         };
-        
+
         if (name) {
             if (this.request && this.request.name === name) {
                 if (requestEquals(this.request, r))
                     return;
-                
+
                 this.xhr.abort();
             }
 
@@ -71,28 +71,28 @@ musicd.APIClient.prototype = {
 
     getTrackURL: function(track, seek) {
         var url = this._urlPrefix + "open?id=" + track.id;
-        
+
         seek = Math.floor(seek);
         if (seek)
             url += "&seek=" + seek;
-        
+
         return url;
     },
-    
+
     getAlbumImageURL: function(albumId, size) {
         return this._urlPrefix + "album/image?id=" + albumId + "&size=" + size;
     },
 
     _executeNext: function() {
         this.loading(!!this.queue.length);
-        
+
         if (this.request || !this.queue.length)
             return;
-        
+
         var r = this.queue[0];
-        
+
         musicd.log(r.method, JSON.stringify(r.args));
-        
+
         this.request = r;
         this.xhr = $.request({
             type: "GET",
@@ -110,7 +110,7 @@ musicd.APIClient.prototype = {
 
         try {
             r.success(res);
-        } catch (e) { musicd.log(e); }
+        } catch (e) { musicd.log(e, e.stack); }
 
         this.request = null;
         this.xhr = null;
@@ -123,7 +123,7 @@ musicd.APIClient.prototype = {
 
         this.request = null;
         this.xhr = null;
-        
+
         if (xhr.status == 403) {
             this.authCallback(this);
         } else {
@@ -133,7 +133,7 @@ musicd.APIClient.prototype = {
                 try {
                     if (r.error)
                         handled = r.error();
-                } catch (e) { musicd.log(e); }
+                } catch (e) { musicd.log(e, e.stack); }
 
                 if (!handled)
                     alert("API error");
@@ -171,6 +171,6 @@ musicd.APIClient.prototype = {
             }
         })
     }
-};    
+};
 
 })();
