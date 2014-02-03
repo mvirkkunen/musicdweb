@@ -29,6 +29,8 @@ musicd.VirtualList = function(cache, columns, template, itemHeight, gridMode) {
         itemsScrollTop: ko.observable(0)
     };
 
+    self._extraItemsFactor = (gridMode ? 0.5 : 1);
+
     self._layout.itemsScrollTop.equalityComparer = null;
     self._layout.itemsScrollTop = self._layout.itemsScrollTop.extend({ throttle: 50});
 
@@ -101,7 +103,8 @@ musicd.VirtualList.prototype = {
         var visible = this._getVisibleRange(),
             ipr = this._layout.itemsPerRow(),
             totalRows = Math.ceil((this._cache.totalCount || 0) / ipr),
-            extraRows = Math.ceil(this._layout.itemsHeight() / this._layout.itemHeight()),
+            extraRows = Math.ceil(
+                this._layout.itemsHeight() / this._layout.itemHeight() * this._extraItemsFactor),
             offset = Math.max(0, visible.offset - extraRows),
             limit = Math.min(visible.limit + extraRows * 2, totalRows);
 
