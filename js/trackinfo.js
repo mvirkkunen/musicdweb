@@ -1,15 +1,16 @@
 "use strict";
 
-musicd.TrackInfo = function(track, search) {
+musicd.TrackInfo = function(main) {
     var self = this;
 
-    self.track = track;
-    self.search = search;
+    self._main = main;
+
+    self.track = main.player.track;
 
     self.showAlbumArt = musicd.setting("TrackInfo.showAlbumArt", true);
     self.showLyrics = musicd.setting("TrackInfo.showLyrics", false);
 
-    self.albumArt = new musicd.AlbumArt(track);
+    self.albumArt = new musicd.AlbumArt(self.track);
 
     self.lyricsLoading = ko.observable(false);
     self.lyrics = ko.observable(null);
@@ -64,12 +65,23 @@ musicd.TrackInfo.prototype = {
 
     searchAlbum: function() {
         if (this.track())
-            this.search("albumid:" + this.track().albumid);
+            this._main.player.search("albumid:" + this.track().albumid);
     },
 
     searchArtist: function() {
         if (this.track())
-            this.search("artistid:" + this.track().artistid);
+            this._main.player.search("artistid:" + this.track().artistid);
+    },
+
+    showAlbumImages: function() {
+        var self = this;
+        if (!self.track())
+            return;
+
+        musicd.api.call("TrackInfo.album", "albums", { albumid: self.track().albumid }, function(r) {
+            if (r.albums && r.albums.length)
+                self._main.imageViewer.showAlbum(r.albums[0]);
+        });
     }
 };
 

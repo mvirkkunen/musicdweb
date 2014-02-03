@@ -2,14 +2,13 @@
 
 (function() {
 
-musicd.VirtualList = function(cache, columns, template, itemHeight, gridMode) {
+musicd.VirtualList = function(cache, template, itemHeight, gridMode) {
     var self = this;
 
     self.template = template;
 
     self._cache = cache;
 
-    self.columns = ko.observableArray(columns);
     self._items = ko.observableArray();
 
     self.selectedIds = ko.observableArray();

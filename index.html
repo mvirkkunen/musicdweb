@@ -23,6 +23,7 @@
         <script src="js/trackinfo.js"></script>
         <script src="js/search.js"></script>
         <script src="js/albumbrowser.js"></script>
+        <script src="js/imageviewer.js"></script>
         <script src="js/remotecontrol.js"></script>
     </head>
     <body>
@@ -37,6 +38,7 @@
                     <li><a href="#" data-bind="click: searchAlbum">Tracks in album</a>
                     <li><a href="#" data-bind="click: searchArtist">Tracks by this artist</a>
                     <li><a href="#" data-bind="click: $root.linkToCurrentClick.bind($root)">Link to current</a></li>
+                    <li><a href="#" data-bind="click: showAlbumImages">More images</a></li>
                 </ul>
             </div>
             <div class="titles" data-bind="visible: track, with: track">
@@ -54,7 +56,7 @@
                 <h2>(no track)</h2>
             </div>
 
-            <div data-bind="slideVisible: showAlbumArt, widget: albumArt"></div>
+            <div data-bind="slideVisible: showAlbumArt, widget: albumArt, event: { dblclick: showAlbumImages }"></div>
 
             <div data-bind="slideVisible: showLyrics">
                 <div class="lyrics" data-bind="with: lyrics, offset: lyricsOffset, style: { maxHeight: lyricsMaxHeight }">
@@ -100,7 +102,7 @@
             </div>
 
             <ul id="tabs" data-bind="foreach: tabs">
-                <li data-bind="css: { current: $root.currentTab() == name }">
+                <li data-bind="visible: !$data.visible || visible(), css: { current: $root.currentTab() == name }">
                     <a href="#" data-bind="click: $root.tabClick, text: text"></a>
                 </li>
             </ul>
@@ -142,6 +144,21 @@
                     (<a href="remote.md" target="blank">more information</a>)
                 </p>
             </div>
+            <div class="tab-content" id="image-viewer" data-bind="with: imageViewer, visible: currentTab() == 'imageViewer'">
+                <div class="image-viewer">
+                    <!-- ko if: album -->
+                        <h2 data-bind="text: album().album"></h2>
+                        <ul data-bind="foreach: images">
+                            <li>
+                                <a data-bind="attr: { href: $parent.getImageUrl($data) }" target="_blank">
+                                    <img data-bind="attr: { src: $parent.getImageUrl($data, 256) }" />
+                                </a>
+                            </li>
+                        </ul>
+                        <p data-bind="visible: !images().length">(no images)</p>
+                    <!-- /ko -->
+                </div>
+            </div>
         </div>
 
         <div id="authentication" class="dialog" style="display: none;">
@@ -182,7 +199,7 @@
             </div>
         </script>
 
-        <script type="text/html" id="widget-virtual-list">
+        <script type="text/html" id="widget-search-list">
             <div class="virtual-list">
                 <div class="heading">
                     <table data-bind="style: { width: _layout.itemsWidth() + 'px' }">
@@ -215,7 +232,7 @@
             </div>
         </script>
 
-        <script type="text/html" id="widget-virtual-grid">
+        <script type="text/html" id="widget-album-browser-grid">
             <div class="virtual-grid"
                  data-bind="offset: _layout.itemsOffset,
                             clientWidth: _layout.itemsWidth,
@@ -226,12 +243,15 @@
                 <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
                     <ul class="items"
                         data-bind="style: { top: _layout.itemsTop() + 'px' },
-                                   on: { 'mouseover li': _itemMouseOver, 'dblclick li': _itemDoubleClick }">
+                                   on: { 'mouseover li': _itemMouseOver,
+                                         'dblclick li': _itemDoubleClick,
+                                         'click .images': itemImagesClick }">
                         <li data-bind="repeat: { foreach: _items, item: 'item' }"
                             data-repeat-bind="css: _getItemClass(item()), eventData: item">
                             <!-- ko if: item -->
                                 <!-- ko cachedImage: _getAlbumImageUrl(item()), cachedImageStore: _imageCache --><!-- /ko -->
-                                <span data-bind="ifnot: item().image" class="no-image">(no image)</span>
+                                <span data-bind="visible: item().image, eventData: item" class="images">Images</span>
+                                <span data-bind="visible: !item().image" class="no-image">(no image)</span>
                                 <div class="info" data-bind="text: item().album"></div>
                             <!-- /ko -->
                         </li>

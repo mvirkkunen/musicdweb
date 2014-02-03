@@ -12,14 +12,11 @@ musicd.AlbumBrowser = function(main) {
 
     self.totalResults = ko.observable(0);
 
-    self.vlist = new musicd.VirtualList(
-        this.cache,
-        [
-            { name: "album", title: "Album" }
-        ],
-        "widget-virtual-grid",
-        220,
-        true);
+    self.vlist = new musicd.VirtualList(this.cache, "widget-album-browser-grid", 220, true);
+
+    self.vlist.itemImagesClick = function(album) {
+        self._main.imageViewer.showAlbum(album);
+    };
 
     self.vlist.itemActivate.subscribe(self._onItemActivate, self);
 

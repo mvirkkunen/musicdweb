@@ -269,20 +269,19 @@ body {
 
 #tabs {
     overflow: hidden;
-    padding-left: 4px;
 }
 
 #tabs li {
     float: left;
     list-style: none;
     position: relative;
+    margin: 0 10px 0 0;
     z-index: 1;
 }
 
 #tabs li a {
     display: block;
     padding: 6px 30px;
-    margin-left: -4px;
     text-decoration: none;
     background: #EEE;
     border-radius: 5px 5px 0 0;
@@ -473,6 +472,19 @@ body {
     color: #888;
 }
 
+.virtual-grid .items li .images {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 5px;
+    color: #FFF;
+    background: rgba(0, 0, 0, 0.7);
+    line-height: 1.2em;
+    cursor: pointer;
+    opacity: 0;
+    -webkit-transition: opacity 0.15s ease-in-out;
+}
+
 .virtual-grid .items li .info {
     position: absolute;
     bottom: 0;
@@ -485,8 +497,8 @@ body {
     color: #FFF;
     background: rgba(0, 0, 0, 0.7);
     line-height: 1.2em;
-    /*opacity: 0;*/
-    -webkit-transition: opacity 0.15s ease-in-out;
+    /*opacity: 0;
+    -webkit-transition: opacity 0.15s ease-in-out;*/
 }
 
 .virtual-grid .items li img {
@@ -502,7 +514,7 @@ body {
     z-index: 11;
 }
 
-.virtual-grid .items li:hover .info {
+.virtual-grid .items li:hover .info, .virtual-grid .items li:hover .images {
     opacity: 1;
 }
 
@@ -520,6 +532,25 @@ body {
 
 #settings label {
     font-weight: bold;
+}
+
+.image-viewer {
+    padding: 10px;
+}
+
+.image-viewer h2 {
+    font-weight: bold;
+    margin-bottom: 1.0em;
+}
+
+.image-viewer ul {
+    overflow: hidden;
+}
+
+.image-viewer ul li {
+    list-style: none;
+    float: left;
+    margin: 0 10px 10px 0;
 }
 
 #shader {

@@ -43,7 +43,8 @@ musicd.Main = function() {
     self.player = new musicd.Player();
     self.search = new musicd.Search(self.player);
     self.albumBrowser = new musicd.AlbumBrowser(self);
-    self.trackInfo = new musicd.TrackInfo(self.player.track, self.search.search);
+    self.imageViewer = new musicd.ImageViewer(self);
+    self.trackInfo = new musicd.TrackInfo(self);
     self.remoteControl = new musicd.RemoteControl(self.player);
 
     self.enableRemoteControl = musicd.setting("Main.enableRemoteControl", false);
@@ -51,14 +52,19 @@ musicd.Main = function() {
         self.remoteControl[self.enableRemoteControl() ? "enable" : "disable"]();
     });
 
+    // TODO: remove weird URL param
+    self.currentTab = ko.observable(location.href.match(/\balbums\b/) ? "albumBrowser" : "search");
+
     self.tabs = [
         { name: "search", text: "Tracks" },
         { name: "albumBrowser", text: "Albums" },
-        { name: "settings", text: "Settings" }
+        { name: "settings", text: "Settings" },
+        {
+            name: "imageViewer",
+            text: "Images",
+            visible: self.imageViewer.album
+        }
     ]
-
-    // TODO: remove weird URL param
-    self.currentTab = ko.observable(location.href.match(/\balbums\b/) ? "albumBrowser" : "search");
 
     self.tabClick = function(tab) {
         self.currentTab(tab.name);

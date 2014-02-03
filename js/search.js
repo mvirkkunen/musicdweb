@@ -14,18 +14,15 @@ musicd.Search = function(player) {
 
     self.totalResults = ko.observable(0);
 
-    self.vlist = new musicd.VirtualList(
-        this.cache,
-        [
-            { name: "track", title: "#" },
-            { name: "title", title: "Title" },
-            { name: "artist", title: "Artist" },
-            { name: "album", title: "Album" },
-            { name: "duration", title: "Length", formatter: musicd.formatTime },
-        ],
-        "widget-virtual-list",
-        24,
-        false);
+    self.vlist = new musicd.VirtualList(this.cache, "widget-search-list", 24, false);
+
+    self.vlist.columns = [
+        { name: "track", title: "#" },
+        { name: "title", title: "Title" },
+        { name: "artist", title: "Artist" },
+        { name: "album", title: "Album" },
+        { name: "duration", title: "Length", formatter: musicd.formatTime },
+    ];
 
     self.vlist.itemActivate.subscribe(self._onItemActivate, self);
 

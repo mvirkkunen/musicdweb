@@ -79,8 +79,12 @@ musicd.APIClient.prototype = {
         return url;
     },
 
+    getImageURL: function(albumId, size) {
+        return this._urlPrefix + "image?id=" + albumId + (size ? "&size=" + size : "");
+    },
+
     getAlbumImageURL: function(albumId, size) {
-        return this._urlPrefix + "album/image?id=" + albumId + "&size=" + size;
+        return this._urlPrefix + "album/image?id=" + albumId + (size ? "&size=" + size : "");
     },
 
     _executeNext: function() {
