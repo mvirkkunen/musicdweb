@@ -469,6 +469,10 @@ body {
     background: #EEE;
 }
 
+.virtual-grid .items li .no-image {
+    color: #888;
+}
+
 .virtual-grid .items li .info {
     position: absolute;
     bottom: 0;

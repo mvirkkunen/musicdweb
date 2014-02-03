@@ -304,36 +304,33 @@ ko.bindingHandlers.preloadedImage = {
     }
 };
 
-var imageCache = [];
-
 ko.bindingHandlers.cachedImage = {
-    init: function(el, valueAccessor) {
-        var src = valueAccessor(), img;
+    update: function(el, valueAccessor, allBindingsAccesor) {
+        var src = valueAccessor();
+
+        ko.virtualElements.emptyNode(el);
+
         if (!src)
             return;
 
-        var cachedIndex = imageCache.findIndex(function(i) { return i.src == src; });
-        if (cachedIndex != -1) {
-            img = imageCache[cachedIndex];
+        var cache = allBindingsAccesor().cachedImageStore,
+            cachedIndex = cache.findIndex(function(i) { return i.src == src; }),
+            img;
 
-            imageCache.splice(cachedIndex, 1);
+        if (cachedIndex != -1) {
+            img = cache[cachedIndex];
         } else {
             img = document.createElement("img");
             img.src = src;
+
+            cache.unshift(img);
+            cache.splice(200, 1);
         }
 
         ko.virtualElements.prepend(el, img);
-
-        ko.utils.domNodeDisposal.addDisposeCallback(el, function () {
-            if (!imageCache.find(function(i) { return i.src == src; })) {
-                imageCache.unshift(img);
-                imageCache.splice(200, 1);
-            }
-        });
     }
 };
 
 ko.virtualElements.allowedBindings.cachedImage = true;
-
 
 })();

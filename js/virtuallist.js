@@ -17,6 +17,8 @@ musicd.VirtualList = function(cache, columns, template, itemHeight, gridMode) {
 
     self._highlightedIndex = ko.observable(null);
 
+    self._imageCache = [];
+
     self._inhibitItemHighlight = null;
 
     self._layout = {
@@ -51,6 +53,7 @@ musicd.VirtualList = function(cache, columns, template, itemHeight, gridMode) {
 musicd.VirtualList.prototype = {
     refresh: function() {
         this._cache.clear();
+        this._imageCache = [];
         this._highlightedIndex(null);
         this._layout.itemsScrollTop(0);
         this._refreshInternal();
@@ -102,7 +105,8 @@ musicd.VirtualList.prototype = {
 
         var visible = this._getVisibleRange(),
             ipr = this._layout.itemsPerRow(),
-            totalRows = Math.ceil((this._cache.totalCount || 0) / ipr),
+            totalCount = this._cache.totalCount || 0,
+            totalRows = Math.ceil(totalCount / ipr),
             extraRows = Math.ceil(
                 this._layout.itemsHeight() / this._layout.itemHeight() * this._extraItemsFactor),
             offset = Math.max(0, visible.offset - extraRows),
@@ -112,8 +116,12 @@ musicd.VirtualList.prototype = {
         this._layout.padderHeight(this._layout.itemHeight() * totalRows);
 
         var items = new Array(limit);
-        for (var i = offset * ipr, ri = 0; i < (offset + limit) * ipr; i++, ri++)
+        for (var i = offset * ipr, ri = 0, end = Math.min(totalCount, (offset + limit) * ipr);
+             i < end;
+             i++, ri++)
+        {
             items[ri] = this._cache.items[i] || null;
+        }
 
         this._items(items);
     },

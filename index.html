@@ -223,15 +223,16 @@
                             scrollTop: _layout.itemsScrollTop,
                             scrollTopHysteresis: 100,
                             style: { height: _layout.itemsHeight() + 'px' }">
-                 <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
+                <div class="padder" data-bind="style: { height: _layout.padderHeight() + 'px' }">
                     <ul class="items"
                         data-bind="style: { top: _layout.itemsTop() + 'px' },
-                                   on: { 'mouseover li': _itemMouseOver, 'dblclick li': _itemDoubleClick },
-                                   foreach: _items">
-                        <li data-bind="css: $parent._getItemClass($data), eventData: $data">
-                            <!-- ko if: $data -->
-                                <!-- ko cachedImage: $parent._getAlbumImageUrl($data) --><!-- /ko -->
-                                <div class="info" data-bind="text: album"></div>
+                                   on: { 'mouseover li': _itemMouseOver, 'dblclick li': _itemDoubleClick }">
+                        <li data-bind="repeat: { foreach: _items, item: 'item' }"
+                            data-repeat-bind="css: _getItemClass(item()), eventData: item">
+                            <!-- ko if: item -->
+                                <!-- ko cachedImage: _getAlbumImageUrl(item()), cachedImageStore: _imageCache --><!-- /ko -->
+                                <span data-bind="ifnot: item().image" class="no-image">(no image)</span>
+                                <div class="info" data-bind="text: item().album"></div>
                             <!-- /ko -->
                         </li>
                     </ul>
