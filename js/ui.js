@@ -314,14 +314,14 @@ ko.bindingHandlers.cachedImage = {
             return;
 
         var cache = allBindingsAccesor().cachedImageStore,
-            cachedIndex = cache.findIndex(function(i) { return i.src == src; }),
+            cachedIndex = cache.findIndex(function(i) { return i._originalSrc == src; }),
             img;
 
         if (cachedIndex != -1) {
             img = cache[cachedIndex];
         } else {
             img = document.createElement("img");
-            img.src = src;
+            img.src = img._originalSrc = src;
 
             cache.unshift(img);
             cache.splice(200, 1);
