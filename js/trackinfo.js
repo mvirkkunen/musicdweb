@@ -65,12 +65,12 @@ musicd.TrackInfo.prototype = {
 
     searchAlbum: function() {
         if (this.track())
-            this._main.player.search("albumid:" + this.track().albumid);
+            this._main.search.search("albumid:" + this.track().albumid);
     },
 
     searchArtist: function() {
         if (this.track())
-            this._main.player.search("artistid:" + this.track().artistid);
+            this._main.search.search("artistid:" + this.track().artistid);
     },
 
     showAlbumImages: function() {
