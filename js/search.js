@@ -124,7 +124,7 @@ musicd.Search.prototype = {
         var text = this.search(),
             args = {},
             prop = "search",
-            re = /\s*(artist(?:id)?|album(?:id)?|directory(?:prefix)?|sort):|(\s*[^\s]+)/gi,
+            re = /\s*(title|artist(?:id)?|album(?:id)?|directory(?:prefix)?|sort):|(\s*[^\s]+)/gi,
             m;
 
         while (m = re.exec(text)) {
