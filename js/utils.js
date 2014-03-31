@@ -131,4 +131,22 @@ ko.extenders.integer = function(target) {
     return computed;
 };
 
+ko.lazyObservable = function(instantiator) {
+    var value = ko.observable(),
+        obs = ko.computed({
+            read: function() {
+                var v = value();
+                if (!v)
+                    value(v = instantiator());
+
+                return v;
+            },
+            deferEvaluation: true
+        });
+
+    obs.peek = value;
+
+    return obs;
+};
+
 })();

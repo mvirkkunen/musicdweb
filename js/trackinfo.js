@@ -80,7 +80,7 @@ musicd.TrackInfo.prototype = {
 
         musicd.api.call("TrackInfo.album", "albums", { albumid: self.track().albumid }, function(r) {
             if (r.albums && r.albums.length)
-                self._main.imageViewer.showAlbum(r.albums[0]);
+                self._main.imageViewer().showAlbum(r.albums[0]);
         });
     }
 };

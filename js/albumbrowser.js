@@ -15,7 +15,7 @@ musicd.AlbumBrowser = function(main) {
     self.vlist = new musicd.VirtualList(this.cache, "widget-album-browser-grid", 220, true);
 
     self.vlist.itemImagesClick = function(album) {
-        self._main.imageViewer.showAlbum(album);
+        self._main.imageViewer().showAlbum(album);
     };
 
     self.vlist.itemActivate.subscribe(self._onItemActivate, self);
