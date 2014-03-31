@@ -122,18 +122,22 @@ musicd.Search.prototype = {
 
     _getSearchArgs: function() {
         var text = this.search(),
-            args = {
-                sort: "album,track,title"
-            };
+            args = {},
+            prop = "search",
+            re = /\s*(artist(?:id)?|album(?:id)?|directory(?:prefix)?|sort):|(\s*[^\s]+)/gi,
+            m;
 
-        // TODO: remove if parsing implemented on server side
-        var m;
-        if (m = text.match(/^albumid:(\d+)$/i))
-            args.albumid = m[1];
-        else if (m = text.match(/^artistid:(\d+)$/i))
-            args.artistid = m[1];
-        else
-            args.search = text;
+        while (m = re.exec(text)) {
+            if (m[1])
+                prop = m[1].toLowerCase();
+            else if (args[prop])
+                args[prop] += m[2];
+            else
+                args[prop] = m[2].replace(/^\s*/, "");
+        }
+
+        if (!args.sort)
+            args.sort = "album,track,title";
 
         return args;
     },
