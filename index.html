@@ -134,10 +134,11 @@
                          data-bind="foreach: { data: path, afterAdd: _afterAddLevel },
                                     style: { width: _layout.levelsWidth() + 'px' },
                                     on: { 'click li': _itemSelect, 'dblclick li': _itemActivate }">
-                        <ul data-bind="foreach: dirs, visible: dirs">
-                            <li data-bind="text: name,
-                                           css: { 'selected': $parents[1]._isSelected($parentContext.$index(), name) },
-                                           eventData: { index: $parentContext.$index(), parent: $parent, dir: $data }"></li>
+                        <ul data-bind="visible: dirs">
+                            <li data-bind="repeat: { foreach: dirs, item: 'item', index: 'itemIndex' }"
+                                data-repeat-bind="text: item().name,
+                                                  css: { 'selected': $parent._isSelected($index(), item().name) },
+                                                  eventData: { index: $index(), parent: $data, dir: item() }"></li>
                         </ul>
                     </div>
                 </div>
