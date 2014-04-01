@@ -25,6 +25,14 @@ musicd.ImageViewer = function(main) {
             }
         );
     });
+
+    self._layout = {
+        areaOffset: ko.observable(0)
+    };
+
+    self._layout.areaHeight = ko.computed(function() {
+        return (musicd.windowHeight() - self._layout.areaOffset().top - 10);
+    });
 };
 
 musicd.ImageViewer.prototype = {

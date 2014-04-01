@@ -23,6 +23,7 @@
         <script src="js/trackinfo.js"></script>
         <script src="js/search.js"></script>
         <script src="js/albumbrowser.js"></script>
+        <script src="js/dirbrowser.js"></script>
         <script src="js/imageviewer.js"></script>
         <script src="js/remotecontrol.js"></script>
     </head>
@@ -106,6 +107,7 @@
                     <a href="#" data-bind="click: $root.tabClick, text: text"></a>
                 </li>
             </ul>
+
             <div class="tab-content" id="search" data-bind="with: search, visible: currentTab() == 'search'">
                 <div class="search" data-bind="event: { keydown: vlist.handleKeyEvent.bind(vlist) }">
                     <input type="search" placeholder="Search tracks" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" />
@@ -114,6 +116,7 @@
 
                 <div class="track-list" data-bind="click: _rootClick, widget: vlist"></div>
             </div>
+
             <div class="tab-content" id="album-browser" data-bind="with: albumBrowser.peek, visible: currentTab() == 'albumBrowser'">
                 <div class="search" data-bind="event: { keydown: vlist.handleKeyEvent.bind(vlist) }">
                     <input type="search" placeholder="Search albums" data-bind="value: search, valueUpdate: ['keyup', 'search'], hasfocus: searchFocus" />
@@ -122,6 +125,24 @@
 
                 <div class="album-list" data-bind="click: _rootClick, widget: vlist"></div>
             </div>
+
+            <div class="tab-content" id="dir-browser" data-bind="with: dirBrowser.peek, visible: currentTab() == 'dirBrowser'">
+                <div class="dir-browser"
+                     data-bind="offset: _layout.areaOffset,
+                                style: { height: _layout.areaHeight() + 'px' }">
+                    <div class="levels"
+                         data-bind="foreach: { data: path, afterAdd: _afterAddLevel },
+                                    style: { width: _layout.levelsWidth() + 'px' },
+                                    on: { 'click li': _itemSelect, 'dblclick li': _itemActivate }">
+                        <ul data-bind="foreach: dirs, visible: dirs">
+                            <li data-bind="text: name,
+                                           css: { 'selected': $parents[1]._isSelected($parentContext.$index(), name) },
+                                           eventData: { index: $parentContext.$index(), parent: $parent, dir: $data }"></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <div class="tab-content" id="settings" data-bind="visible: currentTab() == 'settings'">
                 <p>
                     <label>
@@ -144,8 +165,9 @@
                     (<a href="remote.md" target="blank">more information</a>)
                 </p>
             </div>
+
             <div class="tab-content" id="image-viewer" data-bind="with: imageViewer.peek, visible: currentTab() == 'imageViewer'">
-                <div class="image-viewer">
+                <div class="image-viewer" data-bind="offset: _layout.areaOffset, style: { height: _layout.areaHeight() + 'px' }">
                     <!-- ko if: album -->
                         <h2 data-bind="text: album().album"></h2>
                         <ul data-bind="foreach: images">

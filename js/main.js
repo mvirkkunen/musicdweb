@@ -43,6 +43,7 @@ musicd.Main = function() {
     self.player = new musicd.Player();
     self.search = new musicd.Search(self.player);
     self.albumBrowser = ko.lazyObservable(function() { return new musicd.AlbumBrowser(self); });
+    self.dirBrowser = ko.lazyObservable(function() { return new musicd.DirBrowser(self); });
     self.imageViewer = ko.lazyObservable(function() { return new musicd.ImageViewer(self); });
     self.trackInfo = new musicd.TrackInfo(self);
     self.remoteControl = new musicd.RemoteControl(self.player);
@@ -56,11 +57,14 @@ musicd.Main = function() {
     self.currentTab.subscribe(function(value) {
         if (value == "albumBrowser")
             self.albumBrowser();
+        else if (value == "dirBrowser")
+            self.dirBrowser();
     });
 
     self.tabs = [
         { name: "search", text: "Tracks" },
         { name: "albumBrowser", text: "Albums" },
+        { name: "dirBrowser", text: "Directories" },
         { name: "settings", text: "Settings" },
         {
             name: "imageViewer",
@@ -74,7 +78,7 @@ musicd.Main = function() {
     };
 
     setTimeout(function() {
-        self.currentTab.subscribe(musicd.notifyLayoutChange)
+        self.currentTab.subscribe(musicd.notifyLayoutChange);
     }, 0);
 };
 

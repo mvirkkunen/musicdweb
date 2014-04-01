@@ -54,7 +54,6 @@ body {
 
 .album-art .album-image img, .album-art .dummy-album-art {
     display: inline-block;
-    -moz-box-sizing: border-box;
     box-sizing: border-box;
     vertical-align: middle;
     max-width: 256px;
@@ -309,9 +308,8 @@ body {
 }
 
 #search .search input, #album-browser .search input {
-    -moz-box-sizing: border-box;
     box-sizing: border-box;
-    width: 400px;
+    width: 500px;
     padding: 4px;
     border: 1px solid #CCC;
     -moz-appearance: textfield;
@@ -338,7 +336,6 @@ body {
     line-height: 20px;
     text-align: center;
     box-sizing: border-box;
-    -moz-box-sizing: border-box;
     border: 1px solid outset;
     background: #EEE;
 }
@@ -361,7 +358,6 @@ body {
     /* juuh elikkäs */
     -webkit-touch-callout: none;
     -webkit-user-select: none;
-    -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
@@ -454,7 +450,6 @@ body {
     float: left;
     position: relative;
     box-sizing: border-box;
-    -moz-box-sizing: border-box;
     width: 200px;
     height: 200px;
     margin: 10px;
@@ -492,7 +487,6 @@ body {
     left: 0;
     margin-top: -1px;
     box-sizing: border-box;
-    -moz-box-sizing: border-box;
     padding: 10px;
     color: #FFF;
     background: rgba(0, 0, 0, 0.7);
@@ -518,6 +512,52 @@ body {
     opacity: 1;
 }
 
+.dir-browser {
+    box-sizing: border-box;
+    padding: 10px;
+    overflow-y: hidden;
+    overflow-x: auto;
+    position: relative;
+}
+
+.dir-browser .levels {
+    height: 100%;
+    position: relative;
+}
+
+.dir-browser ul {
+    width: 300px;
+    height: 100%;
+    float: left;
+    overflow-y: scroll;
+}
+
+.dir-browser ul li {
+    word-wrap: break-word;
+    padding: 3px 4px;
+    border: 1px solid transparent;
+    cursor: default;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.dir-browser ul li:nth-child(even) {
+    background: #F8F8F8;
+}
+
+.dir-browser ul li.selected {
+    background: #DDF;
+    border-top: 1px solid #CCF;
+    border-bottom: 1px solid #CCF;
+}
+
+.dir-browser ul li:hover {
+    border: 1px dotted #888;
+}
+
 .track-list .track { width: 20px; }
 /*.track-list .title { width: 30%; }*/
 .track-list .artist { width: 20%; }
@@ -535,7 +575,9 @@ body {
 }
 
 .image-viewer {
+    box-sizing: border-box;
     padding: 10px;
+    overflow: auto;
 }
 
 .image-viewer h2 {
@@ -543,8 +585,12 @@ body {
     margin-bottom: 1.0em;
 }
 
-.image-viewer ul {
+.image-viewer ul:after {
+    content: ' ';
+    display: block;
+    height: 0;
     overflow: hidden;
+    clear: both;
 }
 
 .image-viewer ul li {
@@ -581,7 +627,6 @@ body {
     left: 50%;
     top: 20px;
     box-sizing: border-box;
-    -moz-box-sizing: border-box;
     padding: 10px;
     width: 400px;
     margin-left: -200px;
