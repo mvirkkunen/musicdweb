@@ -186,7 +186,9 @@ $(function() {
 
     var main = new musicd.Main();
 
-    musicd.api = new musicd.APIClient(qs.server || "/", main.authenticate.bind(main));
+    musicd.api = new musicd.APIClient(
+        qs.server || location.pathname.replace(/\/*$/, "/"),
+        main.authenticate.bind(main));
 
     main.loadQueryString();
 
