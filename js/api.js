@@ -54,16 +54,18 @@ musicd.APIClient.prototype = {
     },
 
     isAuthenticated: function(callback) {
-        // TODO: Use a more sensible method to ping
+        var self = this;
+
         $.request({
             type: "GET",
-            url: this._urlPrefix + "tracks?limit=1",
+            url: self._urlPrefix + "musicd",
             dataType: "json",
             xhrFields: { withCredentials: true},
-            success: function(r) { callback(true); },
+            success: function(r) {
+                callback(r.authed);
+            },
             error: function(xhr) {
-                if (xhr.status != 403)
-                    alert("/musicd returned weird status");
+                self._main.reportError("API error in isAuthenticated(): " + xhr.status);
 
                 callback(false);
             }
@@ -173,6 +175,7 @@ musicd.APIClient.prototype = {
             },
             error: function(xhr) {
                 self._main.reportError("API error in authenticate(): " + xhr.status);
+                error();
             }
         })
     }

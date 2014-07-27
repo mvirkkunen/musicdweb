@@ -70,7 +70,7 @@
                     // Dummy request to request authentication
                     musicd.api.call(
                         null,
-                        "musicd",
+                        "status",
                         {},
                         function() {
                             self.src(self.src());
