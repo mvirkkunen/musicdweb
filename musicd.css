@@ -610,11 +610,12 @@ body {
 }
 
 .error {
-    margin: 0 0 10px 0;
+    margin: 20px 0;
     border: 1px solid #000;
     background: #800;
     color: #FFF;
     padding: 10px;
+    border-radius: 5px;
 }
 
 #invalid-browser {

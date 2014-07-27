@@ -2,10 +2,11 @@
 
 (function() {
 
-musicd.APIClient = function(url, authCallback) {
+musicd.APIClient = function(main, urlPrefix, authCallback) {
+    this._main = main;
+    this._urlPrefix = urlPrefix;
     this.authCallback = authCallback;
     this.queue = [];
-    this._urlPrefix = url;
     this.request = null;
     this.loading = ko.observable(false);
 };
@@ -140,7 +141,7 @@ musicd.APIClient.prototype = {
                 } catch (e) { musicd.log(e, e.stack); }
 
                 if (!handled)
-                    alert("API error");
+                    this._main.reportError("API error: " + xhr.status);
             }
 
             this.queue.shift();
@@ -171,7 +172,7 @@ musicd.APIClient.prototype = {
                 self._executeNext();
             },
             error: function(xhr) {
-                alert("Auth fail (" + xhr.status + " " + xhr.statusText + ")");
+                self._main.reportError("API error in authenticate(): " + xhr.status);
             }
         })
     }

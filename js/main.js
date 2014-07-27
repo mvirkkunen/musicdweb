@@ -40,6 +40,19 @@ musicd.checkCompatibility = function() {
 musicd.Main = function() {
     var self = this;
 
+    self.errors = ko.observableArray();
+    self.reportError = function(msg) {
+        var error = { message: msg };
+
+        self.errors.unshift(error);
+        if (self.errors().length > 5)
+            self.errors.pop();
+
+        setTimeout(function() {
+            self.errors.remove(error);
+        }, 5000);
+    };
+
     self.player = new musicd.Player();
     self.search = new musicd.Search(self.player);
     self.albumBrowser = ko.lazyObservable(function() { return new musicd.AlbumBrowser(self); });
@@ -187,6 +200,7 @@ $(function() {
     var main = new musicd.Main();
 
     musicd.api = new musicd.APIClient(
+        main,
         qs.server || location.pathname.replace(/\/*$/, "/"),
         main.authenticate.bind(main));
 

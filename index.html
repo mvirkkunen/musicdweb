@@ -32,44 +32,50 @@
             <strong>Warning:</strong> Your browser is not supported (reason: <span class="reason"></span>)
         </div>
 
-        <div id="track-info" data-bind="with: trackInfo">
-            <div class="menu" data-bind="menu: true, fadeVisible: track()">
-                <a href="#">▼</a>
-                <ul style="display: none;">
-                    <li><a href="#" data-bind="click: searchAlbum">Tracks in album</a>
-                    <li><a href="#" data-bind="click: searchArtist">Tracks by this artist</a>
-                    <li><a href="#" data-bind="click: $root.linkToCurrentClick.bind($root)">Link to current</a></li>
-                    <li><a href="#" data-bind="click: showAlbumImages">More images</a></li>
-                </ul>
-            </div>
-            <div class="titles" data-bind="visible: track, with: track">
-                <h2 data-bind="visible: title">
-                    <span data-bind="text: title"></span>
-                </h2>
-                <h2 data-bind="visible: artist">
-                    by <span data-bind="text: artist"></span>
-                </h2>
-                <h2 data-bind="visible: album">
-                    on <span data-bind="text: album"></span>
-                </h2>
-            </div>
-            <div class="titles" data-bind="visible: !track()">
-                <h2>(no track)</h2>
-            </div>
+        <div id="track-info">
+            <!-- ko with: trackInfo-->
+                <div class="menu" data-bind="menu: true, fadeVisible: track()">
+                    <a href="#">▼</a>
+                    <ul style="display: none;">
+                        <li><a href="#" data-bind="click: searchAlbum">Tracks in album</a>
+                        <li><a href="#" data-bind="click: searchArtist">Tracks by this artist</a>
+                        <li><a href="#" data-bind="click: $root.linkToCurrentClick.bind($root)">Link to current</a></li>
+                        <li><a href="#" data-bind="click: showAlbumImages">More images</a></li>
+                    </ul>
+                </div>
+                <div class="titles" data-bind="visible: track, with: track">
+                    <h2 data-bind="visible: title">
+                        <span data-bind="text: title"></span>
+                    </h2>
+                    <h2 data-bind="visible: artist">
+                        by <span data-bind="text: artist"></span>
+                    </h2>
+                    <h2 data-bind="visible: album">
+                        on <span data-bind="text: album"></span>
+                    </h2>
+                </div>
+                <div class="titles" data-bind="visible: !track()">
+                    <h2>(no track)</h2>
+                </div>
 
-            <div data-bind="slideVisible: showAlbumArt, widget: albumArt, event: { dblclick: showAlbumImages }"></div>
+                <div data-bind="slideVisible: showAlbumArt, widget: albumArt, event: { dblclick: showAlbumImages }"></div>
 
-            <div data-bind="slideVisible: showLyrics">
-                <div class="lyrics" data-bind="with: lyrics, offset: lyricsOffset, style: { maxHeight: lyricsMaxHeight }">
-                    <div class="text" data-bind="text: lyrics"></div>
-                    <div class="source" data-bind="if: source">
-                        Source: <a target="_blank" data-bind="text: provider, attr: { href: source }"></a>
+                <div data-bind="slideVisible: showLyrics">
+                    <div class="lyrics" data-bind="with: lyrics, offset: lyricsOffset, style: { maxHeight: lyricsMaxHeight }">
+                        <div class="text" data-bind="text: lyrics"></div>
+                        <div class="source" data-bind="if: source">
+                            Source: <a target="_blank" data-bind="text: provider, attr: { href: source }"></a>
+                        </div>
+                    </div>
+                    <div class="lyrics" data-bind="ifnot: lyrics">
+                        <div class="loading" data-bind="visible: lyricsLoading"></div>
+                        <div class="unavailable" data-bind="visible: !lyricsLoading()">Lyrics unavailable</div>
                     </div>
                 </div>
-                <div class="lyrics" data-bind="ifnot: lyrics">
-                    <div class="loading" data-bind="visible: lyricsLoading"></div>
-                    <div class="unavailable" data-bind="visible: !lyricsLoading()">Lyrics unavailable</div>
-                </div>
+            <!-- /ko -->
+
+            <div data-bind="visible: errors, foreach: errors">
+                <div class="error" data-bind="text: message"></div>
             </div>
         </div>
 
